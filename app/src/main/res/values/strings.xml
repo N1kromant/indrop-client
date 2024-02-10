@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">indrop</string>
+    <string name="news_page">Новости</string>
+    <string name="messenger_page">Сообщения</string>
+    <string name="profile_page">Профиль</string>
+    <string name="login_title">С возвращением!</string>
+    <string name="registre_title">Добро пожаловать!</string>
+    <string name="hint_login">Логин</string>
+    <string name="hint_password">Пароль</string>
+    <string name="buttonLogin">Войти в аккаунт</string>
+    <string name="isNewUser">Новый пользователь?</string>
+</resources>

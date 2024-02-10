@@ -1,0 +1,24 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.Indrop" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="interactiveColor1">@color/white</item>
+        <item name="interactiveColor2">@color/pink</item>
+        <item name="frontElement">@color/lightPurple</item>
+        <item name="activeFrontElement">@color/activeLightPurple</item>
+        <item name="backElement">@color/darkPurple1</item>
+        <item name="background">@color/darkPurple2</item>
+        <item name="android:windowBackground">?attr/background</item>
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:textColorHint">@color/white</item>
+        <item name="fontFamily">@font/raleway_regular</item>
+        <item name="android:statusBarColor">?attr/frontElement</item>
+    </style>
+
+    <style name="Theme.Indrop" parent="Base.Theme.Indrop" />
+
+    <style name="SwitchStyle" parent="Theme.AppCompat.Light">
+        <item name="android:thumbTint">?interactiveColor1</item>
+            <item name="android:track">@drawable/selector_switch_background</item>
+    </style>
+</resources>

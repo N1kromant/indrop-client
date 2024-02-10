@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navigation"
+    app:startDestination="@id/newsFragment">
+
+    <fragment
+        android:id="@+id/newsFragment"
+        android:name="com.log.indrop.fragments.NewsFragment"
+        tools:layout="@layout/fragment_news"
+        android:label="NewsFragment" />
+    <fragment
+        android:id="@+id/messengerFragment"
+        android:name="com.log.indrop.fragments.MessengerFragment"
+        tools:layout="@layout/fragment_messenger"
+        android:label="MessengerFragment" />
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.log.indrop.fragments.ProfileFragment"
+        tools:layout="@layout/fragment_profile"
+        android:label="ProfileFragment" />
+</navigation>

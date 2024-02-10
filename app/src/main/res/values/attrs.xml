@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="interactiveColor1" format="color"/>
+    <attr name="interactiveColor2" format="color"/>
+    <attr name="frontElement" format="color"/>
+    <attr name="backElement" format="color"/>
+    <attr name="activeFrontElement" format="color"/>
+</resources>
