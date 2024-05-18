@@ -46,6 +46,9 @@ dependencies {
     implementation(composeBom)
     androidTestImplementation(composeBom)
 
+    implementation(project(":data"))
+    implementation(project(":network"))
+
     implementation(libs.coil.compose)
     implementation(libs.material3)
     implementation(libs.androidx.navigation.compose)

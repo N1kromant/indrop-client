@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 rootProject.name = "indrop"
 include(":app")
 include(":network")
+include(":data")

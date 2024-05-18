@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+    kotlin("plugin.serialization") version "1.8.0"
 }
 
 android {
@@ -32,7 +33,12 @@ android {
     }
 }
 
+val ktor_version: String by project
+
+
 dependencies {
+
+    implementation(project(":data"))
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
@@ -44,6 +50,11 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("io.ktor:ktor-client-cio:$ktor_version")
+
+    implementation(libs.kotlinx.serialization.json)
 }
 //
 //tasks.named<JavaExec>("run") {

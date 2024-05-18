@@ -10,6 +10,7 @@ import io.ktor.client.request.get
 import io.ktor.http.HttpMethod
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -36,54 +37,11 @@ class ExampleUnitTest {
 class NetworkManagerUnitTest {
     @Test
     fun mainTest() {
-        val client = HttpClient {
-            install(WebSockets)
-        }
-        runBlocking {
-            client.webSocket(method = HttpMethod.Get, host = "192.168.1.59", port = 8080, path = "/chat") {
-                val messageOutputRoutine = launch { outputMessages() }
-                val userInputRoutine = launch { inputMessages() }
-
-                userInputRoutine.join() // Wait for completion; either "exit" or error
-                messageOutputRoutine.cancelAndJoin()
-            }
-        }
-        client.close()
-        println("Connection closed. Goodbye!")
-    }
-
-    private suspend fun DefaultClientWebSocketSession.outputMessages() {
-        try {
-            for (message in incoming) {
-                message as? Frame.Text ?: continue
-                println(message.readText())
-            }
-        } catch (e: Exception) {
-            println("Error while receiving: " + e.localizedMessage)
-        }
-    }
-
-    private suspend fun DefaultClientWebSocketSession.inputMessages() {
-        while (true) {
-            val message = readLine() ?: ""
-
-            if (message.equals("exit", true)) return
-            try {
-                send(Frame.Text(message))
-            } catch (e: Exception) {
-                println("Error while sending: " + e.localizedMessage)
-                return
-            }
-        }
-    }
-}
-//    fun getResponse() {
-//        val client = HttpClient(CIO)
-//        val response = runBlocking {
-//            client.get("https://ktor.io/")
+        val manager = NetworkManager
+        manager.connect()
+//        runBlocking {
+//            manager.send("g")
 //        }
-//    }
-//    fun addition_isCorrect() {
-//        assertEquals(4, 2 + 2)
-//    }
-//}
+    }
+
+}

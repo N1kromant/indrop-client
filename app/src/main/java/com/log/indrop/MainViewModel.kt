@@ -187,28 +187,28 @@ class MainViewModel: ViewModel() {
                 author = authors[i],
                 dateTime = OffsetDateTime.now(),
                 content = content,
-                isReplyTo = false
+                isReplyTo = null
             )
             messages += Message(
                 4,
                 author = authors[0],
                 dateTime = OffsetDateTime.now(),
                 content = content2,
-                isReplyTo = false
+                isReplyTo = null
             )
             messages += Message(
                 5,
                 author = authors[i],
                 dateTime = OffsetDateTime.now(),
                 content = content,
-                isReplyTo = false
+                isReplyTo = null
             )
             messages += Message(
                 6,
                 author = authors[0],
                 dateTime = OffsetDateTime.now(),
                 content = content2,
-                isReplyTo = false
+                isReplyTo = null
             )
 
             val data = ChatData(
