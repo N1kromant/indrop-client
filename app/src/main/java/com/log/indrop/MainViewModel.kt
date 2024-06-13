@@ -3,11 +3,11 @@ package com.log.indrop
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import com.log.indrop.Content.UserData
-import com.log.indrop.Content.ChatData
-import com.log.indrop.Content.Content
-import com.log.indrop.Content.Message
-import com.log.indrop.Content.PostData
+import com.log.data.ChatData
+import com.log.data.Content
+import com.log.data.Message
+import com.log.data.PostData
+import com.log.data.UserData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.time.OffsetDateTime
@@ -80,6 +80,7 @@ class MainViewModel: ViewModel() {
 
     fun makeFakeUserData() {
         val me = UserData(
+            0,
             "n1kromant",
             "Роман",
             "Николаев",
@@ -91,6 +92,7 @@ class MainViewModel: ViewModel() {
 
     fun makeFakePosts() {
         val author = UserData(
+            1,
             "Puffer",
             "Sofia",
             "Tyuleneva",
@@ -126,9 +128,9 @@ class MainViewModel: ViewModel() {
 
 
         val posts = mutableListOf(
-            PostData(0, author, dateTime, content1),
-            PostData(1, author, dateTime, content2),
-            PostData(2, author, dateTime, content3)
+            PostData(0, author, dateTime, content1, null),
+            PostData(1, author, dateTime, content2, null),
+            PostData(2, author, dateTime, content3, null)
         )
 
         loadPosts(posts)
@@ -137,30 +139,35 @@ class MainViewModel: ViewModel() {
     fun makeFakeChats() {
 
         val author1 = UserData(
+            1,
             "puffer",
             "Соняша",
             "",
             "ICON"
         )
         val author2 = UserData(
+            2,
             "krairox",
             "Матвей",
             "Который Н",
             "ICON"
         )
         val author3 = UserData(
+            3,
             "averdroz",
             "Хаха",
             "Чорни",
             "ICON"
         )
         val author4 = UserData(
+            4,
             "menger",
             "Максим",
             "Решето",
             "ICON"
         )
         val author0 = UserData(
+            0,
             "n1kromant",
             "Роман",
             "Ник",

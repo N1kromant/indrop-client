@@ -82,6 +82,14 @@ data class PostData(
     val author: UserData,
     val dateTime: OffsetDateTime,
     val content: Content,
+    val comments: List<Message>?,
+)
+
+data class Comment(
+    val id: Long?,
+    val postId: Long,
+    val content: Message,
+    var likesCount: Int
 )
 
 data class ChatData(
@@ -96,8 +104,13 @@ data class ChatData(
     }
 }
 
+data class AuthorizationResponse(
+    var result: Boolean,
+    var user: UserData
+)
+
 data class Message(
-    val messageId: Long,
+    val messageId: Long?,
     val author: UserData,
     val dateTime: OffsetDateTime,
     val content: Content,
