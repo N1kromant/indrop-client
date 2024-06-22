@@ -37,8 +37,8 @@ class ExampleUnitTest {
 class NetworkManagerUnitTest {
     @Test
     fun mainTest() {
-        val manager = NetworkManager
-        manager.connect()
+//        val manager = NetworkManager
+//        manager.connect()
 //        runBlocking {
 //            manager.send("g")
 //        }

@@ -1,7 +1,5 @@
 package com.log.indrop
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.log.data.ChatData
 import com.log.data.Content

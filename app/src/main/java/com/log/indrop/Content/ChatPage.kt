@@ -44,20 +44,19 @@ import com.log.data.Message
 import com.log.data.UserData
 import com.log.indrop.R
 import com.log.indrop.ui.theme2.InkTheme
-import com.log.network.NetworkManager
 import java.time.OffsetDateTime
 
 @Composable
-fun ChatPage(data: ChatData, myId: String, me: UserData, onClick: (task: String, id: Long?) -> Unit) {
+fun ChatPage(data: ChatData, myId: String, me: UserData, onClick: (task: String, metaData: String?) -> Unit) {
     Column {
-        ChatHeader(data){ task, id ->  onClick(task, id) }
+        ChatHeader(data) { task, id ->  onClick(task, id) }
         ChatContent(data.messages, myId, this)
-        ChatFooter(me)
+        ChatFooter(me) { task, id -> onClick(task, id) }
     }
 }
 
 @Composable
-fun ChatHeader(data: ChatData, onClick: (task: String, id: Long?) -> Unit) {
+fun ChatHeader(data: ChatData, onClick: (task: String, id: String?) -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -65,7 +64,7 @@ fun ChatHeader(data: ChatData, onClick: (task: String, id: Long?) -> Unit) {
             .verticalScroll(rememberScrollState())
     ) {
         Button(onClick = { onClick("goBack", null) }, Modifier.weight(0.3f)) {
-            Icon(painter = painterResource(id = R.drawable.go_back), contentDescription = "go Back")
+            Icon(painter = painterResource(id = R.drawable.go_back), contentDescription = "goBack")
         }
         Image(
             painter = painterResource(id = R.drawable.profile),
@@ -145,7 +144,7 @@ fun Message(message: Message, isMyMessage: Boolean) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatFooter(me: UserData) {
+fun ChatFooter(me: UserData, onClick: (task: String, metaData: String?) -> Unit) {
     var text by remember { mutableStateOf("") }
     val textFieldColors = TextFieldDefaults.textFieldColors(
         containerColor = MaterialTheme.colorScheme.primaryContainer
@@ -173,7 +172,8 @@ fun ChatFooter(me: UserData) {
                 dateTime = OffsetDateTime.now(),
                 isReplyTo = null
             )
-            NetworkManager.send(message)
+            onClick("sendMessage", message.toJson())
+//            NetworkManager//.sendData(message)
                              }, Modifier.weight(0.1f)) {
             Icon(painter = painterResource(id = R.drawable.send), contentDescription = "Send", tint = MaterialTheme.colorScheme.onPrimary)
         }

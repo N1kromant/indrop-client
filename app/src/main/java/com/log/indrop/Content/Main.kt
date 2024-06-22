@@ -33,24 +33,33 @@ import com.log.indrop.Auth.AuthScreen
 import com.log.indrop.MainViewModel
 import com.log.indrop.R
 import com.log.indrop.ui.theme2.InkTheme
+import com.log.network.NetworkManager
+import com.log.network.ViewModels.NetworkViewModel
 
 class Main: AppCompatActivity() {
-    private val viewModel: MainViewModel by viewModels()
+    private val mainViewModel: MainViewModel by viewModels()
+    private val networkViewModel: NetworkViewModel by viewModels()
+    private val networkManager: NetworkManager = NetworkManager(mainViewModel)
     private lateinit var pickMedia: ActivityResultLauncher<PickVisualMediaRequest>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        viewModel.makeFakeUserData()
-        viewModel.makeFakeChats()
-        viewModel.makeFakePosts()
+        mainViewModel.makeFakeUserData()
+        mainViewModel.makeFakeChats()
+        mainViewModel.makeFakePosts()
+
+        networkManager.connect()
 
         setContent {
             InkTheme {
-                Screen(viewModel) {
-                    when(it) {
+                Screen(mainViewModel) { intent, metaData ->
+                    when(intent) {
                         "ChooseImage" -> {
                             pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
+                        }
+                        "sendMessage" -> {
+                            networkViewModel.newOutputMessage.value = metaData
                         }
                     }
                 }
@@ -70,7 +79,7 @@ class Main: AppCompatActivity() {
 }
 
 @Composable
-fun Screen(viewModel: MainViewModel, onClick: (button: String) -> Unit) {
+fun Screen(viewModel: MainViewModel, onClick: (button: String, metaData: String?) -> Unit) {
     val navController = rememberNavController()
     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
     val isHideNavBar by viewModel.isHideNavBar.collectAsState()
@@ -94,7 +103,7 @@ fun Screen(viewModel: MainViewModel, onClick: (button: String) -> Unit) {
                     viewModel.login()
                     navController.navigate("messages")
                 } }
-                composable("news" ) { NewsPage(viewModel.posts) { onClick(it) } }
+                composable("news" ) { NewsPage(viewModel.posts) { button, metaData ->  onClick(button, metaData) } }
 
                 composable(route = "messages") {
                     viewModel.showNavBar()
@@ -115,11 +124,12 @@ fun Screen(viewModel: MainViewModel, onClick: (button: String) -> Unit) {
                         data = viewModel.currentChat.collectAsState().value!!,
                         myId = viewModel.myId.collectAsState().value!!,
                         me = viewModel.myUserData.collectAsState().value!!
-                    ) { task, id ->
+                    ) { task, metaData ->
                         when(task) {
                             "goBack" -> navController.navigate("messages") {
                                 popUpTo("messages")
                             }
+                            "sendMessage" -> onClick("sendMessage", metaData)
                         }
                     }
 //                    viewModel.chats.value.forEach {

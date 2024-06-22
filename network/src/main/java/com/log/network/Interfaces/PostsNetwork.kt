@@ -23,5 +23,5 @@ interface PostsNetwork {
     /**
      * Отправка комментария на сервер
      */
-    fun send(message: Comment)
+    fun sendData(message: Comment)
 }

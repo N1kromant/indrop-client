@@ -263,7 +263,7 @@ fun PostFooterPreview() {
 
 
 @Composable
-fun NewsPage(postsData: MutableStateFlow<List<PostData>>, onClick: (button: String) -> Unit) {
+fun NewsPage(postsData: MutableStateFlow<List<PostData>>, onClick: (button: String, metaData: String?) -> Unit) {
     LazyColumn {
         item {
             Text(
@@ -334,7 +334,7 @@ fun NewsPagePreview() {
 
     InkTheme {
         Column {
-            NewsPage(posts) {
+            NewsPage(posts) { button, metaData ->  
 
             }
             NavBar(modifier = Modifier.weight(0.2f)) {

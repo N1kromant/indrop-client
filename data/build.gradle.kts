@@ -9,7 +9,12 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 dependencies {
-    implementation(libs.compose.preview.renderer)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlin.stdlib)
 
+    // Lifecycle components
+
+//    implementation(libs.androidx.lifecycle.viewmodel.android)
+//    implementation(libs.androidx.lifecycle.livedata.core.ktx)
 }
