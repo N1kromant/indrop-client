@@ -75,4 +75,34 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     // Optional - Add window size utils
     implementation("androidx.compose.material3:material3-window-size-class")
+
+    // Android инструментарий в junit тесте
+    testImplementation(libs.mockk)
+// Core library
+    androidTestImplementation(libs.androidx.core)
+
+    // AndroidJUnitRunner and JUnit Rules
+    androidTestImplementation(libs.androidx.runner)
+    androidTestImplementation(libs.androidx.rules)
+
+    // Assertions
+    androidTestImplementation(libs.ext.junit)
+    androidTestImplementation(libs.androidx.truth)
+
+    // Espresso dependencies
+    androidTestImplementation(libs.espresso.core)
+    androidTestImplementation(libs.androidx.espresso.contrib)
+    androidTestImplementation(libs.androidx.espresso.intents)
+    androidTestImplementation(libs.androidx.espresso.accessibility)
+    androidTestImplementation(libs.androidx.espresso.web)
+    androidTestImplementation(libs.androidx.idling.concurrent)
+
+    implementation(libs.kotlinx.serialization.json)
+
+    // The following Espresso dependency can be either "implementation",
+    // or "androidTestImplementation", depending on whether you want the
+    // dependency to appear on your APK"s compile classpath or the test APK
+    // classpath.
+    androidTestImplementation( libs.androidx.espresso.idling.resource)
+
 }

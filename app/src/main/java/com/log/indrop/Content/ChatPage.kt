@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,14 +44,14 @@ import com.log.data.Content
 import com.log.data.Message
 import com.log.data.UserData
 import com.log.indrop.R
-import com.log.indrop.ui.theme2.InkTheme
+import kotlinx.coroutines.flow.StateFlow
 import java.time.OffsetDateTime
 
 @Composable
-fun ChatPage(data: ChatData, myId: String, me: UserData, onClick: (task: String, metaData: String?) -> Unit) {
+fun ChatPage(data: StateFlow<ChatData?>, myId: String, me: UserData, onClick: (task: String, metaData: String?) -> Unit) {
     Column {
-        ChatHeader(data) { task, id ->  onClick(task, id) }
-        ChatContent(data.messages, myId, this)
+        ChatHeader(data.collectAsState().value!!) { task, id ->  onClick(task, id) }
+        ChatContent(data.collectAsState().value!!, myId, this)
         ChatFooter(me) { task, id -> onClick(task, id) }
     }
 }
@@ -87,13 +88,14 @@ fun ChatHeader(data: ChatData, onClick: (task: String, id: String?) -> Unit) {
 }
 
 @Composable
-fun ChatContent(messages: List<Message>, myId: String, columnScope: ColumnScope) {
+fun ChatContent(chat: ChatData, myId: String, columnScope: ColumnScope) {
     columnScope.apply {
         LazyColumn (
             Modifier.weight(1f),
             verticalArrangement = Arrangement.Bottom
         ) {
-            items(messages) {
+
+            items(chat.messages) {
                 Message(it, it.author.login == myId)
                 Spacer(Modifier.size(4.dp))
             }
@@ -102,7 +104,7 @@ fun ChatContent(messages: List<Message>, myId: String, columnScope: ColumnScope)
 //            Modifier.weight(1f),
 //            verticalArrangement = Arrangement.Bottom
 //        ) {
-//            messages.forEach {
+//            messages.collectAsState().value!!.messages.forEach {
 //                Message(it, it.author.login == myId)
 //                Spacer(Modifier.size(4.dp))
 //            }
@@ -228,9 +230,9 @@ fun ChatPagePreview() {
         messages = messages
     )
 
-    InkTheme {
-        ChatPage(data, "n1kromant", me, { _, _ ->
-
-        })
-    }
+//    InkTheme {
+//        ChatPage(data.collectAsState().value!!, "n1kromant", me) { _, _ ->
+//
+//        }
+//    }
 }

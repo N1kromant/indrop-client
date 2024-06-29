@@ -7,10 +7,10 @@ import com.log.data.Comment
 import com.log.data.Message
 import com.log.data.PostData
 import com.log.data.UserData
-import com.log.indrop.MainViewModel
 import com.log.network.Interfaces.ChatNetwork
 import com.log.network.Interfaces.PostsNetwork
 import com.log.network.Interfaces.UserNetwork
+import com.log.network.ViewModels.MainViewModel
 import com.log.network.ViewModels.NetworkViewModel
 import io.ktor.client.*
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
@@ -20,20 +20,28 @@ import io.ktor.http.HttpMethod
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.*
 @OptIn(DelicateCoroutinesApi::class)
-class NetworkManager(mainViewModel: com.log.indrop.MainViewModel) :
+class NetworkManager(mainViewModel: MainViewModel) :
     PostsNetwork,
     ChatNetwork,
     UserNetwork {
     private lateinit var client: HttpClient
     private lateinit var me: UserData
-    private val HOST: String = "192.168.1.88"
-    private val viewModel: NetworkViewModel = NetworkViewModel()
-    private lateinit var inputObserver: Observer<Message>
-    private lateinit var outputObserver: Observer<Message>
+//    private val HOST: String = "192.168.1.88"
+    public val viewModel: NetworkViewModel = NetworkViewModel()
+    private lateinit var inputObserver: Observer<String>
+    private lateinit var outputObserver: Observer<String>
+
+    companion object HOST {
+        val HOME = "192.168.1.88"
+        val COUNTRY = "192.168.2.152"
+    }
 
     fun login(
         login: String,
@@ -70,9 +78,10 @@ class NetworkManager(mainViewModel: com.log.indrop.MainViewModel) :
         TODO("Not yet implemented")
     }
 
-    override fun DefaultClientWebSocketSession.sendData(message: Message) {
-
+    override fun DefaultClientWebSocketSession.sendData(message: String) {
+        launch { send(Frame.Text(message)) }
     }
+
 //    fun sendData(message: Msg) {
 //        runBlocking {
 //            client.webSocket(method = HttpMethod.Get, host = HOST, port = 8080, path = "/messages") {
@@ -104,7 +113,7 @@ class NetworkManager(mainViewModel: com.log.indrop.MainViewModel) :
 
 //    var data = ""
 //
-fun connect() {
+suspend fun connect() {
     client = HttpClient {
         install(WebSockets)
     }
@@ -112,29 +121,38 @@ fun connect() {
 //        sendData(it)
 //    }
     runBlocking {
-        client.webSocket(method = HttpMethod.Get, host = HOST, port = 8080, path = "/messages") {
-            outputObserver = Observer {
-                sendData(it)
+        client.webSocket(method = HttpMethod.Get, host = HOST.COUNTRY, port = 8080, path = "/messages") {
+
+            launch {
+                viewModel.newOutputMessage.collect() { sendData(it!!) }
             }
-            viewModel.newInputMessage.observeForever(inputObserver)
+            //            outputObserver = Observer {
+//                sendData(it)
+//            }
+//            inputObserver = Observer {
+//                launch {  }
+//            }
+//            withContext(Dispatchers.Main) {
+//                viewModel.newOutputMessage.observeForever(outputObserver)
+//            }
+//            viewModel.newInputMessage.observeForever(inputObserver)
 //                val serializedMessage = Json.encodeToString(Message.serializer(), message)
 //                val serializedMessage = Json.encodeToString<Message>(message)
 //                val serializedMessage = Json.encodeToString(message)
 //                val serializedMessagee = Json.encode
 //                send(Frame.Binary(message))
 //                sendSerialized(message)
-            for (frame in incoming) {
-                frame as? Frame.Text ?: continue
-                val receivedText = frame.readText()
-
-
+            launch {
+                for (frame in incoming) {
+                    frame as? Frame.Text ?: continue
+                    val receivedText = frame.readText()
+                }
             }
 //            val input = launch { inputMessages() }
 //            launch { outputMessages() }
 //                send(Frame.Text(serializedMessage))
 //            input.join()
 //            output.cancelAndJoin()
-            observerClear()
         }
     }
 }
@@ -152,7 +170,7 @@ fun connect() {
 
 
 
-                viewModel.newInputMessage.value = data
+//                viewModel.newInputMessage.value = data
 //                val userData = Json.decodeFromString(UserDataSerializer, m)
 
 //                println(data.content.text)
@@ -180,10 +198,12 @@ fun connect() {
 
     }
 
-    fun observerClear() {
-//        if (this::observer.isInitialized)
-            viewModel.newInputMessage.removeObserver(inputObserver)
-    }
+//    suspend fun observerClear() {
+////        if (this::observer.isInitialized)
+//        withContext(Dispatchers.Main) {
+//            viewModel.newOutputMessage.removeObserver(outputObserver)
+//        }
+//    }
 
 //
 //    fun send(message: Message) {

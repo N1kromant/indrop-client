@@ -29,27 +29,38 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.log.data.Message
 import com.log.indrop.Auth.AuthScreen
-import com.log.indrop.MainViewModel
+import com.log.network.ViewModels.MainViewModel
 import com.log.indrop.R
 import com.log.indrop.ui.theme2.InkTheme
 import com.log.network.NetworkManager
 import com.log.network.ViewModels.NetworkViewModel
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
+
 
 class Main: AppCompatActivity() {
     private val mainViewModel: MainViewModel by viewModels()
     private val networkViewModel: NetworkViewModel by viewModels()
-    private val networkManager: NetworkManager = NetworkManager(mainViewModel)
+    private lateinit var networkManager: NetworkManager
     private lateinit var pickMedia: ActivityResultLauncher<PickVisualMediaRequest>
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        networkManager = NetworkManager(mainViewModel)
 
         mainViewModel.makeFakeUserData()
         mainViewModel.makeFakeChats()
         mainViewModel.makeFakePosts()
 
-        networkManager.connect()
+        GlobalScope.launch { networkManager.connect() }
+//        GlobalScope.launch { mainViewModel.currentChat.collectAsState() }
 
         setContent {
             InkTheme {
@@ -59,12 +70,13 @@ class Main: AppCompatActivity() {
                             pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
                         }
                         "sendMessage" -> {
-                            networkViewModel.newOutputMessage.value = metaData
+                            networkViewModel.newOutputMessage(metaData!!)
+                            mainViewModel.addMessage(Json.decodeFromString<Message>(metaData))
                         }
                     }
                 }
-//                if (viewModel.isLoggedIn.collectAsState().value) Screen()
-//                else AuthScreen() {viewModel.login()}
+                //                if (viewModel.isLoggedIn.collectAsState().value) Screen()
+                //                else AuthScreen() {viewModel.login()}
             }
         }
 
@@ -107,7 +119,7 @@ fun Screen(viewModel: MainViewModel, onClick: (button: String, metaData: String?
 
                 composable(route = "messages") {
                     viewModel.showNavBar()
-                    MessagesPage(viewModel.chats) {
+                    MessagesPage(viewModel.chats.collectAsState().value) {
                         viewModel.openChat(it)
                         navController.navigate("chat")
                     }
@@ -121,7 +133,7 @@ fun Screen(viewModel: MainViewModel, onClick: (button: String, metaData: String?
                 ) {
                     viewModel.hideNavBar()
                     ChatPage(
-                        data = viewModel.currentChat.collectAsState().value!!,
+                        data = viewModel.currentChat,
                         myId = viewModel.myId.collectAsState().value!!,
                         me = viewModel.myUserData.collectAsState().value!!
                     ) { task, metaData ->

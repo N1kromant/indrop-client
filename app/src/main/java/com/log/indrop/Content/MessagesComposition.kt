@@ -34,7 +34,7 @@ import java.time.Duration
 import java.time.OffsetDateTime
 
 @Composable
-fun MessagesPage(chats: MutableStateFlow<List<ChatData>>, onClick: (chatData: ChatData) -> Unit) {
+fun MessagesPage(chats: List<ChatData>, onClick: (chatData: ChatData) -> Unit) {
 //    Column {
 //        for (i in 0..10) {
 //            HelloWorld(2)
@@ -46,7 +46,7 @@ fun MessagesPage(chats: MutableStateFlow<List<ChatData>>, onClick: (chatData: Ch
             fontSize = 48.sp,
         )
         LazyColumn {
-            items(chats.value) {
+            items(chats) {
                 ChatRow(it) { chatData ->
                     onClick(chatData)
                 }

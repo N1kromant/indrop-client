@@ -1,5 +1,7 @@
-package com.log.indrop
+package com.log.network.ViewModels
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import com.log.data.ChatData
 import com.log.data.Content
@@ -40,6 +42,13 @@ class MainViewModel: ViewModel() {
 
     fun setMyId(id: String) {
         _myId.value = id
+    }
+
+    fun addMessage(message: Message) {
+//        val chat = currentChat.value
+//        chat!!.messages = chat!!.messages
+        _currentChat.value!!.messages += message
+        _currentChat.value = _currentChat.value!!.copy()
     }
 
     fun myUserData(): UserData {
@@ -88,6 +97,7 @@ class MainViewModel: ViewModel() {
         _myUserData.value = me
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun makeFakePosts() {
         val author = UserData(
             1,
@@ -213,6 +223,13 @@ class MainViewModel: ViewModel() {
                 author = authors[0],
                 dateTime = OffsetDateTime.now(),
                 content = content2,
+                isReplyTo = null
+            )
+            messages += Message(
+                7,
+                author = authors[i],
+                dateTime = OffsetDateTime.now(),
+                content = content,
                 isReplyTo = null
             )
 

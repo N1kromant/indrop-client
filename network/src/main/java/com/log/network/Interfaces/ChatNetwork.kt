@@ -8,6 +8,6 @@ interface ChatNetwork {
     fun getNewMessages(): List<Message>
     fun getAllChats(): List<ChatData>
     fun getNewChat(): ChatData
-    fun DefaultClientWebSocketSession.sendData(message: Message)
+    fun DefaultClientWebSocketSession.sendData(message: String)
     fun setNewChat(chat: ChatData)
 }
