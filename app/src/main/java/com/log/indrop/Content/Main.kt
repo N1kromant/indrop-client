@@ -26,11 +26,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.log.data.Message
-import com.log.indrop.Auth.AuthScreen
 import com.log.network.ViewModels.MainViewModel
 import com.log.indrop.R
 import com.log.indrop.ui.theme2.InkTheme
@@ -104,68 +101,42 @@ fun Screen(viewModel: MainViewModel, onClick: (button: String, metaData: String?
             )
     ) {
         Column {
-            NavHost(
-                navController = navController,
-                startDestination = if (!isLoggedIn) "auth" else "messages",
-                modifier = Modifier
-                    .weight(weight = 0.9f, fill = true)
-            ) {
-                composable("auth") { AuthScreen() {
-                    viewModel.setMyId("n1kromant")
-                    viewModel.login()
-                    navController.navigate("messages")
-                } }
-                composable("news" ) { NewsPage(viewModel.posts) { button, metaData ->  onClick(button, metaData) } }
-
-                composable(route = "messages") {
-                    viewModel.showNavBar()
-                    MessagesPage(viewModel.chats.collectAsState().value) {
-                        viewModel.openChat(it)
-                        navController.navigate("chat")
+            ChatPage(
+                data = viewModel.currentChat,
+                myId = viewModel.myId.collectAsState().value!!,
+                render = isHideNavBar,
+                me = viewModel.myUserData.collectAsState().value!!
+            ) { task, metaData ->
+                when (task) {
+                    "goBack" -> {
+                        if(isHideNavBar)
+                            viewModel.hideNavBar()
+                        else
+                            viewModel.showNavBar()
                     }
+                    "sendMessage" -> onClick("sendMessage", metaData)
                 }
-                composable("profile") { ProfilePage(
-                    viewModel.posts,
-                    viewModel.myUserData.collectAsState().value!!
-                ) }
-                composable(
-                    route = "chat",
-                ) {
-                    viewModel.hideNavBar()
-                    ChatPage(
-                        data = viewModel.currentChat,
-                        myId = viewModel.myId.collectAsState().value!!,
-                        me = viewModel.myUserData.collectAsState().value!!
-                    ) { task, metaData ->
-                        when(task) {
-                            "goBack" -> navController.navigate("messages") {
-                                popUpTo("messages")
-                            }
-                            "sendMessage" -> onClick("sendMessage", metaData)
-                        }
-                    }
-//                    viewModel.chats.value.forEach {
+            }
+//            if (!isHideNavBar) {
+//            }
+//            else {
+//                ChatPage(
+//                    data = viewModel.currentChat,
+//                    myId = viewModel.myId.collectAsState().value!!,
+//                    me = viewModel.myUserData.collectAsState().value!!,
+//                    { task, metaData ->
+//                        when (task) {
+//                            "goBack" -> {
+//                                viewModel.showNavBar()
+//                            }
 //
-//                    }
-
-                }
-            }
+//                            "sendMessage" -> onClick("sendMessage", metaData)
+//                        }
+//                    },
+//                    isHideNavBar
+//                )
+//            }
 //            Spacer(modifier = Modifier.weight(weight = 0.1f, fill = true))
-
-            if (isLoggedIn && !isHideNavBar) {
-                NavBar(Modifier) {
-                    if (navController.currentDestination?.route != it) {
-//                        if (it == "messages") navController.navigate(it) {popUpTo("messages")}
-                        when(it) {
-                            "news" -> navController.navigate(it) { popUpTo("messages") }
-                            "profile" -> navController.navigate(it) { popUpTo("messages") }
-                            "messages" -> navController.navigate(it) { popUpTo("auth") }
-                            "chat" -> navController.navigate(it) { popUpTo("messages") }
-                            else -> navController.navigate(it)
-                        }
-                    }
-                }
-            }
         }
     }
 }

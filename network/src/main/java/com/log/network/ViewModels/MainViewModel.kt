@@ -11,18 +11,18 @@ import com.log.data.UserData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.time.OffsetDateTime
-
 class MainViewModel: ViewModel() {
+
     private val _isLoggedIn = MutableStateFlow(false)
     var isLoggedIn = _isLoggedIn.asStateFlow()
 
     private val _isHideNavBar = MutableStateFlow(false)
     var isHideNavBar = _isHideNavBar.asStateFlow()
 
-    private val _currentChat = MutableStateFlow<ChatData?>(null)
+    private val _currentChat = MutableStateFlow<ChatData?>(Sonya.chat)
     var currentChat = _currentChat.asStateFlow()
 
-    private val _myId = MutableStateFlow<String?>(null)
+    private val _myId = MutableStateFlow<String?>(Sonya.me.login)
     var myId = _myId.asStateFlow()
 
     private val _myUserData = MutableStateFlow<UserData?>(null)
@@ -35,6 +35,73 @@ class MainViewModel: ViewModel() {
     private val _posts: MutableStateFlow<List<PostData>> = MutableStateFlow(emptyList())
     val posts: MutableStateFlow<List<PostData>>
         get() = _posts
+
+    companion object Sonya {
+        val she = UserData(
+            1,
+            "Puffer",
+            "Sofia",
+            "Tyuleneva",
+            "uri"
+        )
+
+        val me = UserData(
+            0,
+            "n1kromant",
+            "Роман",
+            "Ник",
+            "ICON"
+        )
+
+        val chat = ChatData(
+            chatId = 0,
+            members = mutableListOf(0,1),
+            title = she.firstName + " " + she.lastName,
+            avatar = null,
+            messages = makeFakeMessages(she, me)
+        )
+
+        fun makeFakeMessages(sonya: UserData, ally :UserData): MutableList<Message> {
+            val messages: MutableList<Message> = mutableListOf()
+            val content = Content(
+                "Бо",
+                null
+            )
+
+            messages += Message(
+                3,
+                author = sonya,
+                dateTime = OffsetDateTime.now(),
+                content = content,
+                isReplyTo = null
+            )
+            messages += Message(
+                4,
+                author = ally,
+                dateTime = OffsetDateTime.now(),
+                content = content,
+                isReplyTo = null
+            )
+            messages += Message(
+                5,
+                author = sonya,
+                dateTime = OffsetDateTime.now(),
+                content = content,
+                isReplyTo = null
+            )
+            messages += Message(
+                6,
+                author = ally,
+                dateTime = OffsetDateTime.now(),
+                content = content,
+                isReplyTo = null
+            )
+
+            return messages
+        }
+
+    }
+
 
     fun openChat(chatData: ChatData) {
         _currentChat.value = chatData
@@ -144,6 +211,45 @@ class MainViewModel: ViewModel() {
         loadPosts(posts)
     }
 
+    fun makeFakeMessages(sonya: UserData, ally :UserData): MutableList<Message> {
+        val messages: MutableList<Message> = mutableListOf()
+        val content = Content(
+            "<3",
+            null
+        )
+
+        messages += Message(
+            3,
+            author = sonya,
+            dateTime = OffsetDateTime.now(),
+            content = content,
+            isReplyTo = null
+        )
+        messages += Message(
+            4,
+            author = ally,
+            dateTime = OffsetDateTime.now(),
+            content = content,
+            isReplyTo = null
+        )
+        messages += Message(
+            5,
+            author = sonya,
+            dateTime = OffsetDateTime.now(),
+            content = content,
+            isReplyTo = null
+        )
+        messages += Message(
+            6,
+            author = ally,
+            dateTime = OffsetDateTime.now(),
+            content = content,
+            isReplyTo = null
+        )
+
+        return messages
+    }
+
     fun makeFakeChats() {
 
         val author1 = UserData(
@@ -163,7 +269,7 @@ class MainViewModel: ViewModel() {
         val author3 = UserData(
             3,
             "averdroz",
-            "Хаха",
+            "Дима",
             "Чорни",
             "ICON"
         )

@@ -48,7 +48,13 @@ import kotlinx.coroutines.flow.StateFlow
 import java.time.OffsetDateTime
 
 @Composable
-fun ChatPage(data: StateFlow<ChatData?>, myId: String, me: UserData, onClick: (task: String, metaData: String?) -> Unit) {
+fun ChatPage(
+    data: StateFlow<ChatData?>,
+    myId: String,
+    me: UserData,
+    render: Boolean,
+    onClick: (task: String, metaData: String?) -> Unit
+) {
     Column {
         ChatHeader(data.collectAsState().value!!) { task, id ->  onClick(task, id) }
         ChatContent(data.collectAsState().value!!, myId, this)
