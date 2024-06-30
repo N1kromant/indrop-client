@@ -47,8 +47,8 @@ class MainViewModel: ViewModel() {
     fun addMessage(message: Message) {
 //        val chat = currentChat.value
 //        chat!!.messages = chat!!.messages
-        _currentChat.value!!.messages += message
-        _currentChat.value = _currentChat.value!!.copy()
+
+        _currentChat.value = _currentChat.value!!.copy(messages = _currentChat.value!!.messages + message)
     }
 
     fun myUserData(): UserData {

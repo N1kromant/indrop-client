@@ -160,7 +160,7 @@ fun Screen(viewModel: MainViewModel, onClick: (button: String, metaData: String?
                             "goBack" -> navController.navigate("messages") {
                                 popUpTo("messages")
                             }
-                            "sendMessage" -> coroutineScope.launch { onClick("sendMessage", metaData) }
+                            "sendMessage" -> onClick("sendMessage", metaData)
                         }
                     }
 //                    viewModel.chats.value.forEach {
