@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -180,7 +181,8 @@ fun ChatFooter(me: UserData, onClick: (task: String, metaData: String?) -> Unit)
             colors = textFieldColors,
             modifier = Modifier.weight(0.8f),
             keyboardOptions = KeyboardOptions.Default.copy(
-                imeAction = ImeAction.Send
+                imeAction = ImeAction.Default,
+                capitalization = KeyboardCapitalization.Sentences
             ),
             keyboardActions = KeyboardActions(
                 onSend = { sendMessage() }
