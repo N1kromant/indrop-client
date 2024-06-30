@@ -31,6 +31,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,6 +46,7 @@ import com.log.data.Message
 import com.log.data.UserData
 import com.log.indrop.R
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import java.time.OffsetDateTime
 
 @Composable
@@ -157,6 +159,8 @@ fun ChatFooter(me: UserData, onClick: (task: String, metaData: String?) -> Unit)
     val textFieldColors = TextFieldDefaults.textFieldColors(
         containerColor = MaterialTheme.colorScheme.primaryContainer
     )
+    val c = rememberCoroutineScope()
+
 
     Row(
         Modifier
@@ -180,9 +184,11 @@ fun ChatFooter(me: UserData, onClick: (task: String, metaData: String?) -> Unit)
                 dateTime = OffsetDateTime.now(),
                 isReplyTo = null
             )
-            onClick("sendMessage", message.toJson())
+            c.launch {
+                onClick("sendMessage", message.toJson())
+            }
 //            NetworkManager//.sendData(message)
-                             }, Modifier.weight(0.1f)) {
+        }, Modifier.weight(0.1f)) {
             Icon(painter = painterResource(id = R.drawable.send), contentDescription = "Send", tint = MaterialTheme.colorScheme.onPrimary)
         }
     }

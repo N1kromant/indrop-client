@@ -61,6 +61,8 @@ class Main: AppCompatActivity() {
 //        GlobalScope.launch { mainViewModel.currentChat.collectAsState() }
 
         setContent {
+            val coroutineScope = rememberCoroutineScope()
+
             InkTheme {
                 Screen(mainViewModel) { intent, metaData ->
                     when(intent) {
@@ -68,8 +70,12 @@ class Main: AppCompatActivity() {
                             pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
                         }
                         "sendMessage" -> {
-                            networkViewModel.newOutputMessage(metaData!!)
-                            mainViewModel.addMessage(Json.decodeFromString<Message>(metaData))
+                            coroutineScope.launch {
+                                networkViewModel.newOutputMessage(metaData!!)
+                            }
+                            coroutineScope.launch {
+                                mainViewModel.addMessage(Json.decodeFromString<Message>(metaData!!))
+                            }
                         }
                     }
                 }
