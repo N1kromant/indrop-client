@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -92,6 +93,7 @@ fun Screen(viewModel: MainViewModel, onClick: (button: String, metaData: String?
     val navController = rememberNavController()
     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
     val isHideNavBar by viewModel.isHideNavBar.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -109,11 +111,12 @@ fun Screen(viewModel: MainViewModel, onClick: (button: String, metaData: String?
             ) { task, metaData ->
                 when (task) {
                     "goBack" -> {
-                        if(isHideNavBar)
-                            viewModel.hideNavBar()
-                        else
-                            viewModel.showNavBar()
-                    }
+                        if(isHideNavBar) {
+                            coroutineScope.launch { viewModel.showNavBar() }
+                        }
+                        else {
+                            coroutineScope.launch { viewModel.hideNavBar() }
+                        }                    }
                     "sendMessage" -> onClick("sendMessage", metaData)
                 }
             }
