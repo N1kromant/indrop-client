@@ -121,7 +121,7 @@ suspend fun connect() {
 //        sendData(it)
 //    }
     runBlocking {
-        client.webSocket(method = HttpMethod.Get, host = HOST.COUNTRY, port = 8080, path = "/messages") {
+        client.webSocket(method = HttpMethod.Get, host = HOST.HOME, port = 8080, path = "/messages") {
 
             launch {
                 viewModel.newOutputMessage.collect() { sendData(it!!) }

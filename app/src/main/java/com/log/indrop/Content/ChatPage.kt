@@ -31,6 +31,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,15 +45,17 @@ import com.log.data.Content
 import com.log.data.Message
 import com.log.data.UserData
 import com.log.indrop.R
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import java.time.OffsetDateTime
 
 @Composable
-fun ChatPage(data: StateFlow<ChatData?>, myId: String, me: UserData, onClick: (task: String, metaData: String?) -> Unit) {
+fun ChatPage(data: ChatData, myId: String, me: UserData, onClick: (task: String, metaData: String?) -> Unit) {
+    val coroutineScope = rememberCoroutineScope()
+
     Column {
-        ChatHeader(data.collectAsState().value!!) { task, id ->  onClick(task, id) }
-        ChatContent(data.collectAsState().value!!, myId, this)
-        ChatFooter(me) { task, id -> onClick(task, id) }
+        ChatHeader(data) { task, id ->  coroutineScope.launch { onClick(task, id) } }
+        ChatContent(data, myId, this)
+        ChatFooter(me) { task, id -> coroutineScope.launch { onClick(task, id) }}
     }
 }
 
@@ -151,6 +154,7 @@ fun ChatFooter(me: UserData, onClick: (task: String, metaData: String?) -> Unit)
     val textFieldColors = TextFieldDefaults.textFieldColors(
         containerColor = MaterialTheme.colorScheme.primaryContainer
     )
+    val coroutineScope = rememberCoroutineScope()
 
     Row(
         Modifier
@@ -174,7 +178,9 @@ fun ChatFooter(me: UserData, onClick: (task: String, metaData: String?) -> Unit)
                 dateTime = OffsetDateTime.now(),
                 isReplyTo = null
             )
-            onClick("sendMessage", message.toJson())
+            coroutineScope.launch {
+                onClick("sendMessage", message.toJson())
+            }
 //            NetworkManager//.sendData(message)
                              }, Modifier.weight(0.1f)) {
             Icon(painter = painterResource(id = R.drawable.send), contentDescription = "Send", tint = MaterialTheme.colorScheme.onPrimary)

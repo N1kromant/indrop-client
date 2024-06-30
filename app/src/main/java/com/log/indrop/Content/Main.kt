@@ -1,5 +1,6 @@
 package com.log.indrop.Content
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
@@ -21,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -55,14 +57,18 @@ class Main: AppCompatActivity() {
 
         networkManager = NetworkManager(mainViewModel)
 
-        mainViewModel.makeFakeUserData()
-        mainViewModel.makeFakeChats()
-        mainViewModel.makeFakePosts()
+        GlobalScope.launch {
+            mainViewModel.makeFakeUserData()
+            mainViewModel.makeFakeChats()
+            mainViewModel.makeFakePosts()
 
-        GlobalScope.launch { networkManager.connect() }
+            networkManager.connect()
+        }
 //        GlobalScope.launch { mainViewModel.currentChat.collectAsState() }
 
         setContent {
+            val coroutine = rememberCoroutineScope()
+
             InkTheme {
                 Screen(mainViewModel) { intent, metaData ->
                     when(intent) {
@@ -70,8 +76,10 @@ class Main: AppCompatActivity() {
                             pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
                         }
                         "sendMessage" -> {
-                            networkViewModel.newOutputMessage(metaData!!)
-                            mainViewModel.addMessage(Json.decodeFromString<Message>(metaData))
+                            coroutine.launch {
+                                networkViewModel.newOutputMessage(metaData!!)
+                                mainViewModel.addMessage(Json.decodeFromString<Message>(metaData))
+                            }
                         }
                     }
                 }
@@ -90,11 +98,13 @@ class Main: AppCompatActivity() {
     }
 }
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun Screen(viewModel: MainViewModel, onClick: (button: String, metaData: String?) -> Unit) {
     val navController = rememberNavController()
     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
     val isHideNavBar by viewModel.isHideNavBar.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -111,16 +121,23 @@ fun Screen(viewModel: MainViewModel, onClick: (button: String, metaData: String?
                     .weight(weight = 0.9f, fill = true)
             ) {
                 composable("auth") { AuthScreen() {
-                    viewModel.setMyId("n1kromant")
-                    viewModel.login()
+
+                    coroutineScope.launch {
+                        viewModel.setMyId("n1kromant")
+                        viewModel.login()
+                    }
                     navController.navigate("messages")
                 } }
                 composable("news" ) { NewsPage(viewModel.posts) { button, metaData ->  onClick(button, metaData) } }
 
                 composable(route = "messages") {
-                    viewModel.showNavBar()
+                    coroutineScope.launch {
+                        viewModel.showNavBar()
+                    }
                     MessagesPage(viewModel.chats.collectAsState().value) {
-                        viewModel.openChat(it)
+                        coroutineScope.launch {
+                            viewModel.openChat(it)
+                        }
                         navController.navigate("chat")
                     }
                 }
@@ -131,9 +148,11 @@ fun Screen(viewModel: MainViewModel, onClick: (button: String, metaData: String?
                 composable(
                     route = "chat",
                 ) {
-                    viewModel.hideNavBar()
+                    coroutineScope.launch {
+                        viewModel.hideNavBar()
+                    }
                     ChatPage(
-                        data = viewModel.currentChat,
+                        data = viewModel.currentChat.collectAsState().value!!,
                         myId = viewModel.myId.collectAsState().value!!,
                         me = viewModel.myUserData.collectAsState().value!!
                     ) { task, metaData ->
@@ -141,7 +160,7 @@ fun Screen(viewModel: MainViewModel, onClick: (button: String, metaData: String?
                             "goBack" -> navController.navigate("messages") {
                                 popUpTo("messages")
                             }
-                            "sendMessage" -> onClick("sendMessage", metaData)
+                            "sendMessage" -> coroutineScope.launch { onClick("sendMessage", metaData) }
                         }
                     }
 //                    viewModel.chats.value.forEach {
