@@ -59,11 +59,17 @@ class Main: AppCompatActivity() {
 
         GlobalScope.launch {
             mainViewModel.makeFakeUserData()
-            mainViewModel.makeFakeChats()
+//            mainViewModel.makeFakeChats()
             mainViewModel.makeFakePosts()
 
             networkManager.connect()
+
+            val chats = networkManager.getAllChats(mainViewModel.myUserData.value!!.authorId!!)
+            mainViewModel.updateChatDataList(
+                chats
+            )
         }
+
 //        GlobalScope.launch { mainViewModel.currentChat.collectAsState() }
 
         setContent {

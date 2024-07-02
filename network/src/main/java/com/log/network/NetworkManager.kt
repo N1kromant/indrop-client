@@ -16,6 +16,10 @@ import io.ktor.client.*
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocket
+import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.readText
 import io.ktor.http.HttpMethod
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
@@ -42,6 +46,9 @@ class NetworkManager(mainViewModel: MainViewModel) :
         val HOME = "192.168.1.88"
         val COUNTRY = "192.168.2.152"
     }
+    val port = ":8080"
+    val url = HOST.HOME
+    val uri = "http://" + HOST.HOME + port
 
     fun login(
         login: String,
@@ -70,8 +77,15 @@ class NetworkManager(mainViewModel: MainViewModel) :
         TODO("Not yet implemented")
     }
 
-    override fun getAllChats(): List<ChatData> {
-        TODO("Not yet implemented")
+    override fun getAllChats(userId: Long): List<ChatData> {
+        lateinit var response: String
+        val localUrl = uri + "/getChats/${userId}"
+
+        runBlocking {
+            launch { response = client.get(localUrl).bodyAsText() }
+        }
+
+        return Json.decodeFromString<MutableList<ChatData>>(response)
     }
 
     override fun getNewChat(): ChatData {
@@ -117,11 +131,9 @@ suspend fun connect() {
     client = HttpClient {
         install(WebSockets)
     }
-//    inputObserver = Observer {
-//        sendData(it)
-//    }
+
     runBlocking {
-        client.webSocket(method = HttpMethod.Get, host = HOST.HOME, port = 8080, path = "/messages") {
+        client.webSocket(method = HttpMethod.Get, host = url, port = 8080, path = "/messages") {
 
             launch {
                 viewModel.newOutputMessage.collect() { sendData(it!!) }
@@ -146,6 +158,7 @@ suspend fun connect() {
                 for (frame in incoming) {
                     frame as? Frame.Text ?: continue
                     val receivedText = frame.readText()
+
                 }
             }
 //            val input = launch { inputMessages() }

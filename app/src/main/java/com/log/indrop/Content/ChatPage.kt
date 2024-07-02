@@ -105,15 +105,6 @@ fun ChatContent(chat: ChatData, myId: String, columnScope: ColumnScope) {
                 Spacer(Modifier.size(4.dp))
             }
         }
-//        Column(
-//            Modifier.weight(1f),
-//            verticalArrangement = Arrangement.Bottom
-//        ) {
-//            messages.collectAsState().value!!.messages.forEach {
-//                Message(it, it.author.login == myId)
-//                Spacer(Modifier.size(4.dp))
-//            }
-//        }
     }
 }
 

@@ -1,6 +1,7 @@
 package com.log.network
 
 import android.util.Log
+import com.log.network.ViewModels.MainViewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
@@ -44,4 +45,16 @@ class NetworkManagerUnitTest {
 //        }
     }
 
+    @Test
+    fun getChatsTest() {
+        val manager = NetworkManager(mainViewModel = MainViewModel())
+
+        runBlocking {
+            manager.connect()
+        }
+        val l = manager.getAllChats(1)
+
+        print(l)
+
+    }
 }

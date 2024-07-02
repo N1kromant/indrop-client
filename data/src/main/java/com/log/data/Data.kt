@@ -35,50 +35,6 @@ data class UserData(
     val lastName: String,
     val icon: String?, //Url
 )
-//object UserDataSerializer : KSerializer<UserData> {
-//    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("UserData") {
-//        element<Long?>("authorId")
-//        element<String>("login")
-//        element<String>("firstName")
-//        element<String>("lastName")
-//        element<String?>("icon")
-//    }
-//
-//    @OptIn(ExperimentalSerializationApi::class)
-//    override fun serialize(encoder: Encoder, value: UserData) {
-//        val composite = encoder.beginStructure(descriptor)
-//        composite.encodeLongElement(descriptor, 0, value.authorId)
-//        composite.encodeStringElement(descriptor, 1, value.login)
-//        composite.encodeStringElement(descriptor, 2, value.firstName)
-//        composite.encodeStringElement(descriptor, 3, value.lastName)
-//        composite.encodeNullableSerializableElement(descriptor, 4, String.serializer().nullable, value.icon)
-//        composite.endStructure(descriptor)
-//    }
-//
-//    @OptIn(ExperimentalSerializationApi::class)
-//    override fun deserialize(decoder: Decoder): UserData {
-//        var authorId = 0L
-//        var login = ""
-//        var firstName = ""
-//        var lastName = ""
-//        var icon: String? = null
-//
-//        decoder.decodeStructure(descriptor) {
-//            loop@ while (true) {
-//                when (val index = decodeElementIndex(descriptor)) {
-//                    CompositeDecoder.DECODE_DONE -> break@loop
-//                    0 -> authorId = decodeLongElement(descriptor, index)
-//                    1 -> login = decodeStringElement(descriptor, index)
-//                    2 -> firstName = decodeStringElement(descriptor, index)
-//                    3 -> lastName = decodeStringElement(descriptor, index)
-//                    4 -> icon = decodeNullableSerializableElement(descriptor, index, String.serializer().nullable)
-//                    else -> throw SerializationException("Unknown index: $index")
-//                }
-//            }
-//        }
-//        return UserData(authorId, login, firstName, lastName, icon)
-//    }
-//}
 
 data class PostData(
     val postId: Long,
@@ -95,6 +51,7 @@ data class Comment(
     var likesCount: Int
 )
 
+@Serializable
 data class ChatData(
     val chatId: Long,
     val members: MutableList<Int>,
@@ -125,13 +82,6 @@ data class Message(
         return Json.encodeToString(this)
     }
 }
-//@Serializable
-//data class Msg(
-//    val messageId: Long?,
-//    val author: UserData,
-//    val content: Content,
-//    val isReplyTo: Long?
-//)
 object OffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("OffsetDateTime", PrimitiveKind.STRING)
