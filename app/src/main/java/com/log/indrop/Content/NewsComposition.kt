@@ -279,7 +279,7 @@ fun NewsPage(postsData: MutableStateFlow<List<PostData>>, onClick: (button: Stri
 //                submitButtonText = "Выбрать фото",
 //                fontSize = 28.sp
 //            ) {
-//                onClick("ChooseImage")
+//                onClick("chooseImage")
 //            }
 //        }
     }

@@ -23,7 +23,7 @@ import kotlinx.serialization.json.Json
 @Serializable
 data class Content(
     var text: String?,
-    val images: List<String>?,
+    val images: String?,
 ) {
 
 }
@@ -60,7 +60,7 @@ data class ChatData(
     var messages: List<Message>,
 ) {
     fun getLastMessage(): Message {
-        return messages[0]
+        return messages.last()
     }
 }
 

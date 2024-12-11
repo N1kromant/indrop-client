@@ -38,7 +38,9 @@ import com.log.indrop.R
 import com.log.indrop.ui.theme2.InkTheme
 import com.log.network.NetworkManager
 import com.log.network.ViewModels.NetworkViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
@@ -59,27 +61,33 @@ class Main: AppCompatActivity() {
 
         GlobalScope.launch {
             mainViewModel.makeFakeUserData()
-//            mainViewModel.makeFakeChats()
+            mainViewModel.makeFakeChats()
             mainViewModel.makeFakePosts()
 
-            networkManager.connect()
-
-            val chats = networkManager.getAllChats(mainViewModel.myUserData.value!!.authorId!!)
-            mainViewModel.updateChatDataList(
-                chats
-            )
+//            networkManager.connect()
+//
+//            val chats = networkManager.getAllChats(mainViewModel.myUserData.value!!.authorId!!)
+//            mainViewModel.updateChatDataList(
+//                chats
+//            )
         }
 
 //        GlobalScope.launch { mainViewModel.currentChat.collectAsState() }
 
         setContent {
             val coroutine = rememberCoroutineScope()
+            val networkCoroutine = CoroutineScope(Dispatchers.IO)
 
             InkTheme {
                 Screen(mainViewModel) { intent, metaData ->
                     when(intent) {
-                        "ChooseImage" -> {
+                        "chooseImage" -> {
                             pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
+                        }
+                        "openChat" -> {
+                            networkCoroutine.launch {
+                                networkManager.openChat(metaData!!.toLong())
+                            }
                         }
                         "sendMessage" -> {
                             coroutine.launch {
@@ -142,8 +150,10 @@ fun Screen(viewModel: MainViewModel, onClick: (button: String, metaData: String?
                     }
                     MessagesPage(viewModel.chats.collectAsState().value) {
                         coroutineScope.launch {
+                            //TODO: Open chat
                             viewModel.openChat(it)
                         }
+                        onClick("openChat", it.chatId.toString())
                         navController.navigate("chat")
                     }
                 }
