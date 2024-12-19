@@ -1,6 +1,9 @@
 package com.log.network
 
 import android.util.Log
+import com.log.data.Content
+import com.log.data.Message
+import com.log.data.UserData
 import com.log.network.ViewModels.MainViewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
@@ -18,9 +21,12 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.junit.Test
 
 import org.junit.Assert.*
+import java.time.OffsetDateTime
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -32,7 +38,27 @@ class ExampleUnitTest {
     fun addition_isCorrect() {
         assertEquals(4, 2 + 2)
     }
-}
+
+    @Test
+    fun makeMessage() {
+        val me = UserData(
+            1,
+            "n1kromant",
+            "Роман",
+            "Николаев",
+            "ICON"
+        )
+
+        val message = Message(
+            messageId = null,
+            author = me,
+            content = Content("Text", null),
+            dateTime = OffsetDateTime.now(),
+            isReplyTo = null
+        )
+        println(Json.encodeToString(message))
+    }
+ }
 
 @OptIn(DelicateCoroutinesApi::class)
 class NetworkManagerUnitTest {

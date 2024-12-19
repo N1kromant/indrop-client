@@ -24,6 +24,7 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -58,12 +59,15 @@ class NetworkManager(mainViewModel: MainViewModel) :
     private lateinit var outputObserver: Observer<String>
 
     companion object HOST {
-        val HOME = "192.168.1.88"
-        val COUNTRY = "192.168.2.152"
+        const val HOME = "192.168.1.88"
+        const val COUNTRY = "192.168.2.152"
+        const val OWN = "127.0.0.1"
     }
-    val port = ":8080"
-    val url = HOST.HOME
-    val uri = "http://" + HOST.HOME + port
+    private val select = HOST.COUNTRY
+
+    private val port = ":44444"
+    private val url = select
+    private val uri = "http://$select$port"
 
 
     @Serializable
@@ -278,7 +282,9 @@ class NetworkManager(mainViewModel: MainViewModel) :
     }
 
     override fun DefaultClientWebSocketSession.sendData(message: String) {
-        launch { send(Frame.Text(message)) }
+        runBlocking {
+            send(Frame.Text(message))
+        }
     }
 
 //    fun sendData(message: Msg) {
@@ -312,48 +318,31 @@ class NetworkManager(mainViewModel: MainViewModel) :
 
 //    var data = ""
 //
-suspend fun connect() {
-    client = HttpClient {
-        install(WebSockets)
-    }
-
-    runBlocking {
-        client.webSocket(method = HttpMethod.Get, host = url, port = 8080, path = "/messages") {
-
-            launch {
-                viewModel.newOutputMessage.collect() { sendData(it!!) }
-            }
-            //            outputObserver = Observer {
-//                sendData(it)
-//            }
-//            inputObserver = Observer {
-//                launch {  }
-//            }
-//            withContext(Dispatchers.Main) {
-//                viewModel.newOutputMessage.observeForever(outputObserver)
-//            }
-//            viewModel.newInputMessage.observeForever(inputObserver)
-//                val serializedMessage = Json.encodeToString(Message.serializer(), message)
-//                val serializedMessage = Json.encodeToString<Message>(message)
-//                val serializedMessage = Json.encodeToString(message)
-//                val serializedMessagee = Json.encode
-//                send(Frame.Binary(message))
-//                sendSerialized(message)
-            launch {
-                for (frame in incoming) {
-                    frame as? Frame.Text ?: continue
-                    val receivedText = frame.readText()
-
-                }
-            }
-//            val input = launch { inputMessages() }
-//            launch { outputMessages() }
-//                send(Frame.Text(serializedMessage))
-//            input.join()
-//            output.cancelAndJoin()
+    suspend fun connect() {
+        client = HttpClient {
+            install(WebSockets)
         }
     }
-}
+
+    suspend fun openChat(chatId: Long) {
+        client.webSocket(method = HttpMethod.Get, host = url, port = port.substring(1).toInt(), path = "/chat/$chatId") {
+            viewModel.newOutputMessage.collect { message ->
+                message?.let {
+                    sendData(
+                        message
+                    )
+                }
+            }
+//                launch {
+//                    for (frame in incoming) {
+//                        frame as? Frame.Text ?: continue
+//                        val receivedText = frame.readText()
+//
+//                    }
+//                }
+        }
+
+    }
 
     private suspend fun DefaultClientWebSocketSession.inputMessages() {
         try {

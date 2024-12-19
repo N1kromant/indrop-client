@@ -10,7 +10,9 @@ import com.log.data.PostData
 import com.log.data.UserData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.runBlocking
 import java.time.OffsetDateTime
 
 class MainViewModel: ViewModel() {
@@ -47,6 +49,7 @@ class MainViewModel: ViewModel() {
 
     fun addMessage(message: Message) {
         _currentChat.value = _currentChat.value!!.copy(messages = _currentChat.value!!.messages + message)
+
         _chats.value.filter { it.chatId == _currentChat.value!!.chatId }.forEach {
             it.messages += message
         }
