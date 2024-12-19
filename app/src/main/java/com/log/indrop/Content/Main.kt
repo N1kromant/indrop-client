@@ -2,6 +2,7 @@ package com.log.indrop.Content
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
@@ -41,8 +42,9 @@ import com.log.network.ViewModels.NetworkViewModel
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+
+import androidx.compose.ui.platform.LocalContext
 
 
 class Main: AppCompatActivity() {
@@ -59,15 +61,15 @@ class Main: AppCompatActivity() {
 
         GlobalScope.launch {
             mainViewModel.makeFakeUserData()
-//            mainViewModel.makeFakeChats()
+            mainViewModel.makeFakeChats()
             mainViewModel.makeFakePosts()
 
-            networkManager.connect()
-
-            val chats = networkManager.getAllChats(mainViewModel.myUserData.value!!.authorId!!)
-            mainViewModel.updateChatDataList(
-                chats
-            )
+        //    networkManager.connect()
+//
+        //    val chats = networkManager.getAllChats(mainViewModel.myUserData.value!!.authorId!!)
+        //    mainViewModel.updateChatDataList(
+        //        chats
+        //    )
         }
 
 //        GlobalScope.launch { mainViewModel.currentChat.collectAsState() }
@@ -75,8 +77,9 @@ class Main: AppCompatActivity() {
         setContent {
             val coroutine = rememberCoroutineScope()
 
+
             InkTheme {
-                Screen(mainViewModel) { intent, metaData ->
+                Screen(mainViewModel, networkManager) { intent, metaData ->
                     when(intent) {
                         "ChooseImage" -> {
                             pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
@@ -89,8 +92,6 @@ class Main: AppCompatActivity() {
                         }
                     }
                 }
-                //                if (viewModel.isLoggedIn.collectAsState().value) Screen()
-                //                else AuthScreen() {viewModel.login()}
             }
         }
 
@@ -102,15 +103,18 @@ class Main: AppCompatActivity() {
             }
         }
     }
+
 }
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun Screen(viewModel: MainViewModel, onClick: (button: String, metaData: String?) -> Unit) {
+fun Screen(viewModel: MainViewModel,networkManager: NetworkManager, onClick: (button: String, metaData: String?) -> Unit) {
     val navController = rememberNavController()
     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
     val isHideNavBar by viewModel.isHideNavBar.collectAsState()
     val coroutineScope = rememberCoroutineScope()
+
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -126,14 +130,54 @@ fun Screen(viewModel: MainViewModel, onClick: (button: String, metaData: String?
                 modifier = Modifier
                     .weight(weight = 0.9f, fill = true)
             ) {
-                composable("auth") { AuthScreen() {
+                composable("auth") {
+                    AuthScreen(
+                        isLoggedIn = { username, password ->
 
-                    coroutineScope.launch {
-                        viewModel.setMyId("n1kromant")
-                        viewModel.login()
-                    }
-                    navController.navigate("messages")
-                } }
+                            //для тестов фаст вход //FIXME убрать
+                            if(username == "" && password == "") {
+                                viewModel.login()
+                                viewModel.setMyId("1")
+                                navController.navigate("messages")
+                                Toast.makeText(context, "Успешная Авторизация!", Toast.LENGTH_SHORT).show()
+                            }
+                            else {
+                                coroutineScope.launch {
+                                    val loginResponse = networkManager.loginTry(username, password)
+                                    if (loginResponse.data.authenticateUser.success) {
+                                        viewModel.login()
+
+                                        //TODO myID
+                                        viewModel.setMyId("14881998")
+
+                                        navController.navigate("messages")
+                                        Toast.makeText(context, "Успешная Авторизация!", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        navController.navigate("auth")
+                                        Toast.makeText(context, "Авторизация не удалась!", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            }
+
+                        },
+                        isRegisterIn = { regLogin,
+                                         regPassword,
+                                         regName,
+                                          ->
+                            coroutineScope.launch {
+                                val registerResponse = networkManager.registerTry(regLogin,regPassword,regName)
+                                if (registerResponse.data.addUser.success)
+                                {
+                                    Toast.makeText(context, "Успешная регистрация!", Toast.LENGTH_SHORT).show()
+                                }
+                                else
+                                {
+                                    Toast.makeText(context, "Регистрация не удалась!", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    )
+                }
                 composable("news" ) { NewsPage(viewModel.posts) { button, metaData ->  onClick(button, metaData) } }
 
                 composable(route = "messages") {
@@ -141,8 +185,12 @@ fun Screen(viewModel: MainViewModel, onClick: (button: String, metaData: String?
                         viewModel.showNavBar()
                     }
                     MessagesPage(viewModel.chats.collectAsState().value) {
+                        try {
                         coroutineScope.launch {
                             viewModel.openChat(it)
+                        }
+                        } catch (e: Exception) {
+                            Log.e("CoroutineError", "Error occurred: ${e.message}")
                         }
                         navController.navigate("chat")
                     }
@@ -254,3 +302,5 @@ fun NavBarPreview() {
         }
     }
 }
+
+

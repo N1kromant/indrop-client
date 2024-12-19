@@ -1,7 +1,6 @@
 package com.log.network
 
 import androidx.lifecycle.Observer
-import com.log.data.AuthorizationResponse
 import com.log.data.ChatData
 import com.log.data.Comment
 import com.log.data.Message
@@ -28,8 +27,24 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.*
+
+import java.util.*
+import kotlinx.coroutines.*
+
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.withTimeout
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.*
+import kotlinx.serialization.json.JsonElement
+
+import android.util.Log
+
 @OptIn(DelicateCoroutinesApi::class)
 class NetworkManager(mainViewModel: MainViewModel) :
     PostsNetwork,
@@ -50,19 +65,189 @@ class NetworkManager(mainViewModel: MainViewModel) :
     val url = HOST.HOME
     val uri = "http://" + HOST.HOME + port
 
-    fun login(
+
+    @Serializable
+    data class AuthorizationResponse(
+        @SerialName("data") // Указываем точное имя поля в JSON
+        val data: AuthenticateUser // Вложенные данные в поле "data"
+    )
+
+    @Serializable
+    data class AuthenticateUserResponse(
+        val success: Boolean,
+        val token: String? // Токен может быть null
+    )
+
+    @Serializable
+    data class AuthenticateUser(
+        val authenticateUser: AuthenticateUserResponse
+    )
+
+    @Serializable
+    data class RegistrationResponse(
+        @SerialName("data") // Указываем точное имя поля в JSON
+        val data: RegistrateUser // Вложенные данные в поле "data"
+    )
+
+    @Serializable
+    data class RegistrateUser(
+        val addUser: AddUserResponse
+    )
+
+    @Serializable
+    data class AddUserResponse(
+        val success: Boolean,
+        val AddUserResponseUserData: AddUserResponseUserData? // Может быть null, если добавление не удалось
+    )
+
+    @Serializable
+    data class AddUserResponseUserData(
+        val login: String,
+        val password: String,
+        val name: String
+    )
+
+    private val graphqlUrl = "http://api.1ndrop.ru:4444/graphql"
+
+    suspend fun loginTry(
         login: String,
         password: String
     ): AuthorizationResponse {
-        TODO("Not yet implemented")
+        val graphqlQueryAuth = """
+        mutation {
+            authenticateUser(login: "$login", password: "$password") {
+                success
+                token
+            }
+        }
+    """.trimIndent()
+
+
+
+        val client = HttpClient {
+            install(ContentNegotiation) {
+                json(Json {
+                    ignoreUnknownKeys = true  // Игнорируем незнакомые ключи
+                    isLenient = true  // Разрешаем более гибкое парсинг
+                    coerceInputValues = true // Преобразовывать входные значения в null, если они не могут быть преобразованы
+                    encodeDefaults = true  // Кодировать даже значения по умолчанию
+                })
+            }
+        }
+
+        var authResponse: AuthorizationResponse
+
+        try {
+            withTimeout(5000) {
+                val response: HttpResponse = withContext(Dispatchers.IO) {
+                    client.post(graphqlUrl) {
+                        contentType(ContentType.Application.Json)
+                        setBody(mapOf("query" to graphqlQueryAuth))
+                    }
+                }
+
+                println("Статус ответа: ${response.status}")
+                println("Тело ответа: ${response.bodyAsText()}")
+
+                if (response.status == HttpStatusCode.OK) {
+                    println("Статус ответа: ${response.status}")
+                    val responseBody = response.bodyAsText()  // Получаем тело ответа как строку
+                    println("Тело ответа: $responseBody")
+
+                    // Десериализуем JSON в объект AuthorizationResponse
+                    authResponse = Json.decodeFromString(responseBody)
+                }
+                else {
+                    authResponse = AuthorizationResponse(data = AuthenticateUser(AuthenticateUserResponse(success = false, token = null)))
+                }
+            }
+        } catch (e: TimeoutCancellationException) {
+            println("Ответ не был получен в течение 10 секунд")
+            authResponse = AuthorizationResponse(data = AuthenticateUser(AuthenticateUserResponse(success = false, token = null)))
+        } catch (e: Exception) {
+            println("Ошибка: ${e.message}")
+            authResponse = AuthorizationResponse(data = AuthenticateUser(AuthenticateUserResponse(success = false, token = null)))
+        } finally {
+            client.close()
+        }
+
+
+        return authResponse
     }
-    fun register(
+
+
+
+    suspend fun registerTry(
         login: String,
         password: String,
         firstName: String,
-        lastName: String
-    ): AuthorizationResponse {
-        TODO("Not yet implemented")
+    ): RegistrationResponse {
+        val graphqlQueryRegister = """
+    mutation {
+        addUser(input: {
+            login: "$login",
+            firstName: "$firstName",
+            lastName: "$firstName",
+            password: "$password"
+        }) {
+            success
+            AddUserResponseUserData {
+                login
+                password
+                name
+            }
+        }
+    }
+""".trimIndent()
+
+        val client = HttpClient {
+            install(ContentNegotiation) {
+                json(Json {
+                    ignoreUnknownKeys = true  // Игнорируем незнакомые ключи
+                    isLenient = true  // Разрешаем более гибкое парсинг
+                    coerceInputValues = true // Преобразовывать входные значения в null, если они не могут быть преобразованы
+                    encodeDefaults = true  // Кодировать даже значения по умолчанию
+                })
+            }
+        }
+
+        var registerResponse: RegistrationResponse
+
+        try {
+            withTimeout(10000) {
+                val response: HttpResponse = withContext(Dispatchers.IO) {
+                    client.post(graphqlUrl) {
+                        contentType(ContentType.Application.Json)
+                        setBody(mapOf("query" to graphqlQueryRegister))
+                    }
+                }
+
+                println("Статус ответа: ${response.status}")
+                println("Тело ответа: ${response.bodyAsText()}")
+
+                if (response.status == HttpStatusCode.OK) {
+                    println("Статус ответа: ${response.status}")
+                    val responseBody = response.bodyAsText()  // Получаем тело ответа как строку
+                    Log.i("MyApp","Тело ответа: $responseBody")
+
+                    registerResponse = Json.decodeFromString(responseBody)
+
+                }
+                else {
+                    registerResponse = RegistrationResponse(data = RegistrateUser(AddUserResponse(success = false,AddUserResponseUserData = null)))
+                }
+            }
+        } catch (e: TimeoutCancellationException) {
+            println("Ответ не был получен в течение 10 секунд")
+            registerResponse = RegistrationResponse(data = RegistrateUser(AddUserResponse(success = false, AddUserResponseUserData = null)))
+        } catch (e: Exception) {
+            println("Ошибка: ${e.message}")
+            registerResponse = RegistrationResponse(data = RegistrateUser(AddUserResponse(success = false, AddUserResponseUserData = null)))
+        } finally {
+            client.close()
+        }
+
+        return registerResponse
     }
 
     override fun setPost(post: PostData) {

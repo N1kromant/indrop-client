@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrainsKotlinAndroid)
-//    kotlin("plugin.serialization") version "1.8.0"
+    kotlin("plugin.serialization") version "1.8.0"
 }
 
 android {
@@ -54,8 +54,14 @@ dependencies {
 
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
+    // Ktor Client Core
+// или
+    implementation(libs.ktor.client.okhttp) // OkHttp - альтернативный движок для JVM
+
+// Ktor Client JSON для работы с JSON
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+
+// Ktor Client Logging (опционально, для отладки запросов)
+    implementation(libs.ktor.client.logging)
 }
-//
-//tasks.named<JavaExec>("run") {
-//    standardInput = System.`in`
-//}

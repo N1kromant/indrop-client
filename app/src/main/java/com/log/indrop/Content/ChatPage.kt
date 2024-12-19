@@ -49,6 +49,7 @@ import com.log.data.Content
 import com.log.data.Message
 import com.log.data.UserData
 import com.log.indrop.R
+import com.log.indrop.ui.theme2.InkTheme
 import kotlinx.coroutines.launch
 import java.time.OffsetDateTime
 
@@ -235,9 +236,9 @@ fun ChatPagePreview() {
         messages = messages
     )
 
-//    InkTheme {
-//        ChatPage(data.collectAsState().value!!, "n1kromant", me) { _, _ ->
-//
-//        }
-//    }
+   InkTheme {
+       ChatPage(data, "n1kromant", me) { _, _ ->
+
+       }
+   }
 }

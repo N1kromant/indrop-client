@@ -45,10 +45,8 @@ dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2024.03.00")
     implementation(composeBom)
     androidTestImplementation(composeBom)
-
     implementation(project(":data"))
     implementation(project(":network"))
-
     implementation(libs.coil.compose)
     implementation(libs.material3)
     implementation(libs.androidx.navigation.compose)
@@ -98,11 +96,8 @@ dependencies {
     androidTestImplementation(libs.androidx.idling.concurrent)
 
     implementation(libs.kotlinx.serialization.json)
-
-    // The following Espresso dependency can be either "implementation",
-    // or "androidTestImplementation", depending on whether you want the
-    // dependency to appear on your APK"s compile classpath or the test APK
-    // classpath.
     androidTestImplementation( libs.androidx.espresso.idling.resource)
+
+
 
 }
