@@ -1,5 +1,6 @@
 package com.log.indrop.Content
 
+import android.graphics.Color
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,11 +17,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,6 +34,7 @@ import com.log.data.ChatData
 import com.log.data.Content
 import com.log.data.Message
 import com.log.data.UserData
+import com.log.indrop.FakeContent.makeFakeChats
 import com.log.indrop.R
 import com.log.indrop.ui.theme2.InkTheme
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,16 +43,40 @@ import java.time.OffsetDateTime
 
 @Composable
 fun MessagesPage(chats: List<ChatData>, onClick: (chatData: ChatData) -> Unit) {
-//    Column {
-//        for (i in 0..10) {
-//            HelloWorld(2)
-//        }
-//    }
+
     Column {
-        Text(
-            text = "Messages Page",
-            fontSize = 48.sp,
-        )
+        Row (
+            Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.primaryContainer)
+        ) {
+            Text(
+                text = stringResource(R.string.MessagesPageTitle),
+                fontSize = 36.sp,
+                modifier = Modifier
+                    .padding(
+                        vertical = 12.dp,
+                        horizontal = 12.dp
+                    )
+                    .align(Alignment.CenterVertically)            )
+            Spacer(
+                modifier = Modifier
+                    .weight(1f)
+            )
+            IconButton(
+                onClick = { TODO("Обработка нажатия") },
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.baseline_search),
+                    "search",
+                    tint = colorResource(R.color.white)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.size(2.dp))
+
         LazyColumn {
             items(chats) {
                 ChatRow(it) { chatData ->
@@ -53,6 +85,15 @@ fun MessagesPage(chats: List<ChatData>, onClick: (chatData: ChatData) -> Unit) {
                 Spacer(modifier = Modifier.size(2.dp))
             }
         }
+    }
+}
+
+@Preview
+@Composable
+fun MessagesPagePreview() {
+    val fakeChats = makeFakeChats()
+    InkTheme {
+        MessagesPage(fakeChats, {})
     }
 }
 

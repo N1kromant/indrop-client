@@ -65,7 +65,7 @@ class Main: AppCompatActivity() {
             mainViewModel.makeFakePosts()
 
         //    networkManager.connect()
-//
+        //
         //    val chats = networkManager.getAllChats(mainViewModel.myUserData.value!!.authorId!!)
         //    mainViewModel.updateChatDataList(
         //        chats

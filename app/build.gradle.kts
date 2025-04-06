@@ -98,6 +98,8 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     androidTestImplementation( libs.androidx.espresso.idling.resource)
 
+    // Compose Constraint Layout
+    implementation(libs.androidx.constraintlayout.compose)
 
 
 }
