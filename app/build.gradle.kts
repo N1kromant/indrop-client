@@ -100,6 +100,4 @@ dependencies {
 
     // Compose Constraint Layout
     implementation(libs.androidx.constraintlayout.compose)
-
-
 }

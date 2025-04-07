@@ -48,6 +48,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+    implementation(libs.lifecycle.viewmodel.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -64,4 +65,6 @@ dependencies {
 
 // Ktor Client Logging (опционально, для отладки запросов)
     implementation(libs.ktor.client.logging)
+
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
 }
