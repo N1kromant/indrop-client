@@ -1,6 +1,5 @@
 package com.log.indrop.Content
 
-import android.graphics.Color
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,16 +15,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -40,12 +35,16 @@ import com.log.data.UserData
 import com.log.indrop.FakeContent.makeFakeChats
 import com.log.indrop.R
 import com.log.indrop.ui.theme2.InkTheme
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.log.network.ViewModels.Search.SearchIntent
+import com.log.network.ViewModels.Search.SearchViewModel
+import org.koin.androidx.compose.koinViewModel
 import java.time.Duration
 import java.time.OffsetDateTime
 
 @Composable
-fun MessagesPage(chats: List<ChatData>, onClick: (chatData: ChatData) -> Unit) {
+fun MessagesPage(searchViewModel: SearchViewModel = koinViewModel(), chats: List<ChatData>, onClickChat: (chatData: ChatData) -> Unit) {
+
+    searchViewModel.effect
 
     Column {
         Row (
@@ -67,7 +66,7 @@ fun MessagesPage(chats: List<ChatData>, onClick: (chatData: ChatData) -> Unit) {
                     .weight(1f)
             )
             IconButton(
-                onClick = { TODO("Обработка нажатия") },
+                onClick = { /* searchViewModel.processIntent() */ },
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
             ) {
@@ -83,7 +82,7 @@ fun MessagesPage(chats: List<ChatData>, onClick: (chatData: ChatData) -> Unit) {
         LazyColumn {
             items(chats) {
                 ChatRow(it) { chatData ->
-                    onClick(chatData)
+                    onClickChat(chatData)
                 }
                 Spacer(modifier = Modifier.size(2.dp))
             }
@@ -96,7 +95,7 @@ fun MessagesPage(chats: List<ChatData>, onClick: (chatData: ChatData) -> Unit) {
 fun MessagesPagePreview() {
     val fakeChats = makeFakeChats()
     InkTheme {
-        MessagesPage(fakeChats, {})
+        MessagesPage(SearchViewModel(), fakeChats, {})
     }
 }
 

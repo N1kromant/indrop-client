@@ -54,7 +54,7 @@ class NetworkManager() :
     private lateinit var client: HttpClient
     private lateinit var me: UserData
 //    private val HOST: String = "192.168.1.88"
-    public val viewModel: NetworkViewModel = NetworkViewModel()
+    public val viewModel: NetworkViewModel = NetworkViewModel() //FIXME
     private lateinit var inputObserver: Observer<String>
     private lateinit var outputObserver: Observer<String>
 
@@ -62,12 +62,14 @@ class NetworkManager() :
         const val HOME = "192.168.1.88"
         const val COUNTRY = "192.168.2.152"
         const val OWN = "127.0.0.1"
+        const val SERVER = "api.1ndrop.ru"
     }
-    private val select = HOST.COUNTRY
+    private val select = HOST.SERVER
 
-    private val port = ":44444"
+    private val port = ":4444"
     private val url = select
     private val uri = "http://$select$port"
+    private val graphqlUrl = "$uri/graphql"
 
     @OptIn(InternalSerializationApi::class)
     @Serializable
@@ -116,8 +118,6 @@ class NetworkManager() :
         val password: String,
         val name: String
     )
-
-    private val graphqlUrl = "http://api.1ndrop.ru:4444/graphql"
 
     suspend fun loginTry(
         login: String,

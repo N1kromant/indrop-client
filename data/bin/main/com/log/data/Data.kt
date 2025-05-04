@@ -64,6 +64,23 @@ data class ChatData(
     }
 }
 
+/**
+ * Returns the [count] most recent chats sorted by the timestamp of their latest message.
+ * If the list contains fewer elements than [count], returns all elements.
+ *
+ * @param count The number of most recent chats to return
+ * @return List of most recent [ChatData] objects
+ */
+fun List<ChatData>.getLastChats(count: Int): List<ChatData> {
+    // Sort chats by the timestamp of their last message in descending order (newest first)
+    val sortedChats = this.sortedByDescending { chat ->
+        chat.getLastMessage().dateTime
+    }
+
+    // Return at most 'count' chats
+    return sortedChats.take(count)
+}
+
 data class AuthorizationResponse(
     var result: Boolean,
     var user: UserData

@@ -1,7 +1,5 @@
 package com.log.network.ViewModels
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import com.log.data.ChatData
 import com.log.data.Content
@@ -10,9 +8,6 @@ import com.log.data.PostData
 import com.log.data.UserData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.runBlocking
 import java.time.OffsetDateTime
 
 class MainViewModel: ViewModel() {
@@ -39,20 +34,116 @@ class MainViewModel: ViewModel() {
     val posts: MutableStateFlow<List<PostData>>
         get() = _posts
 
-    fun openChat(chatData: ChatData) {
-        _currentChat.value = chatData
+    fun openChat(chatData: ChatData): Boolean {
+        val chat = _chats.value.find { it.chatId == chatData.chatId }
+        if (chat != null) {
+            _currentChat.value = chat  // Устанавливаем ссылку на объект из списка
+
+            return true
+        }
+        return false
     }
 
     fun setMyId(id: String) {
         _myId.value = id
     }
 
-    fun addMessage(message: Message) {
-        _currentChat.value = _currentChat.value!!.copy(messages = _currentChat.value!!.messages + message)
+    /**
+     * Сортирует список чатов по времени последнего сообщения
+     * (свежие чаты с последними сообщениями будут в начале списка)
+     */
+    fun sortChatsByLatestMessage() {
+        val currentChats = _chats.value
+        if (currentChats.isEmpty()) return
 
-        _chats.value.filter { it.chatId == _currentChat.value!!.chatId }.forEach {
-            it.messages += message
+        // Сортируем чаты по времени последнего сообщения (в порядке убывания)
+        val sortedChats = currentChats.sortedByDescending { chat ->
+            // Если в чате нет сообщений, ставим его в конец списка
+            if (chat.messages.isEmpty()) {
+                OffsetDateTime.MIN
+            } else {
+                chat.getLastMessage().dateTime
+            }
         }
+
+        // Обновляем список чатов отсортированным
+        _chats.value = sortedChats
+    }
+
+    /**
+     * Добавляет сообщение в текущий чат
+     *
+     * @param message Сообщение для добавления
+     */
+    fun addMessageCurrentChat(message: Message) {
+        val current = _currentChat.value ?: return
+
+        // Поскольку _currentChat теперь указывает на объект в списке чатов,
+        // мы можем напрямую изменять его свойства
+        current.messages = current.messages + message
+
+        // Уведомляем подписчиков об изменениях
+        _currentChat.value = current
+//        _chats.value = _chats.value // Триггерит обновление UI для подписчиков на _chats
+        sortChatsByLatestMessage()
+    }
+
+    /**
+     * Добавляет сообщение в чат с указанным идентификатором
+     *
+     * @param chatId Идентификатор чата, в который нужно добавить сообщение
+     * @param message Сообщение для добавления
+     * @return true если сообщение было добавлено, false если чат не найден
+     */
+    fun addMessage(chatId: Long, message: Message): Boolean {
+        // Получаем текущий список чатов
+        val currentChats = _chats.value
+
+        // Находим индекс чата с указанным chatId
+        val chatIndex = currentChats.indexOfFirst { it.chatId == chatId }
+
+        // Если чат не найден, возвращаем false
+        if (chatIndex == -1) {
+            return false
+        }
+
+        // Создаем новый список чатов с обновленным чатом
+        val updatedChats = currentChats.toMutableList()
+
+        // Получаем чат и обновляем его список сообщений
+        val chat = updatedChats[chatIndex]
+        val updatedChat = chat.copy(messages = chat.messages + message)
+
+        // Заменяем старый чат на обновленный
+        updatedChats[chatIndex] = updatedChat
+
+        // Обновляем состояние списка чатов
+//        _chats.value = updatedChats
+        sortChatsByLatestMessage()
+        return true
+    }
+
+    /**
+     * Обновляет чат в списке чатов
+     *
+     * @param updatedChat Обновленные данные чата
+     * @return true если чат найден и обновлен, false в противном случае
+     */
+    fun updateChat(updatedChat: ChatData): Boolean {
+        val chatIndex = _chats.value.indexOfFirst { it.chatId == updatedChat.chatId }
+        if (chatIndex == -1) return false
+
+        val newChats = _chats.value.toMutableList()
+        newChats[chatIndex] = updatedChat
+        _chats.value = newChats
+
+        // Если обновляемый чат - текущий, то нужно обновить и ссылку на него
+        if (_currentChat.value?.chatId == updatedChat.chatId) {
+            _currentChat.value = updatedChat
+        }
+
+        sortChatsByLatestMessage()
+        return true
     }
 
     fun myUserData(): UserData {

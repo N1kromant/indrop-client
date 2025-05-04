@@ -19,11 +19,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.log.indrop.R
 import com.log.indrop.ui.theme2.InkTheme
 import com.log.network.ViewModels.Search.SearchViewModel
+import org.koin.androidx.compose.getViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun SearchPage() {
-    val viewModel: SearchViewModel = viewModel()
-
+fun SearchPage(viewModel: SearchViewModel = koinViewModel()) {
 
 }
 

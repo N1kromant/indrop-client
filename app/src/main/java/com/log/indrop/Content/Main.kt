@@ -8,7 +8,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -90,7 +89,7 @@ class Main: AppCompatActivity() {
                             "sendMessage" -> {
                                 coroutine.launch {
                                     networkViewModel.newOutputMessage(metaData!!)
-                                    mainViewModel.addMessage(Json.decodeFromString<Message>(metaData))
+                                    mainViewModel.addMessageCurrentChat(Json.decodeFromString<Message>(metaData))
                                 }
                             }
                         }
@@ -188,7 +187,7 @@ fun Screen(viewModel: MainViewModel,networkManager: NetworkManager, onClick: (bu
                     coroutineScope.launch {
                         viewModel.showNavBar()
                     }
-                    MessagesPage(viewModel.chats.collectAsState().value) {
+                    MessagesPage(chats = viewModel.chats.collectAsState().value) {
                         try {
                         coroutineScope.launch {
                             viewModel.openChat(it)
