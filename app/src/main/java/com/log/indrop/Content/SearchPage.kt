@@ -15,11 +15,15 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.log.indrop.R
 import com.log.indrop.ui.theme2.InkTheme
+import com.log.network.ViewModels.Search.SearchViewModel
 
 @Composable
 fun SearchPage() {
+    val viewModel: SearchViewModel = viewModel()
+
 
 }
 

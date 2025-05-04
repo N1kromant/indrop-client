@@ -47,7 +47,7 @@ import kotlinx.serialization.json.JsonElement
 import android.util.Log
 
 @OptIn(DelicateCoroutinesApi::class)
-class NetworkManager(mainViewModel: MainViewModel) :
+class NetworkManager() :
     PostsNetwork,
     ChatNetwork,
     UserNetwork {
@@ -69,41 +69,47 @@ class NetworkManager(mainViewModel: MainViewModel) :
     private val url = select
     private val uri = "http://$select$port"
 
-
+    @OptIn(InternalSerializationApi::class)
     @Serializable
     data class AuthorizationResponse(
         @SerialName("data") // Указываем точное имя поля в JSON
         val data: AuthenticateUser // Вложенные данные в поле "data"
     )
 
+    @OptIn(InternalSerializationApi::class)
     @Serializable
     data class AuthenticateUserResponse(
         val success: Boolean,
         val token: String? // Токен может быть null
     )
 
+    @OptIn(InternalSerializationApi::class)
     @Serializable
     data class AuthenticateUser(
         val authenticateUser: AuthenticateUserResponse
     )
 
+    @OptIn(InternalSerializationApi::class)
     @Serializable
     data class RegistrationResponse(
         @SerialName("data") // Указываем точное имя поля в JSON
         val data: RegistrateUser // Вложенные данные в поле "data"
     )
 
+    @OptIn(InternalSerializationApi::class)
     @Serializable
     data class RegistrateUser(
         val addUser: AddUserResponse
     )
 
+    @OptIn(InternalSerializationApi::class)
     @Serializable
     data class AddUserResponse(
         val success: Boolean,
         val AddUserResponseUserData: AddUserResponseUserData? // Может быть null, если добавление не удалось
     )
 
+    @OptIn(InternalSerializationApi::class)
     @Serializable
     data class AddUserResponseUserData(
         val login: String,

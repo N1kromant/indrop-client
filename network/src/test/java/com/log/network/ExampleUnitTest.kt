@@ -73,7 +73,7 @@ class NetworkManagerUnitTest {
 
     @Test
     fun getChatsTest() {
-        val manager = NetworkManager(mainViewModel = MainViewModel())
+        val manager = NetworkManager()
 
         runBlocking {
             manager.connect()

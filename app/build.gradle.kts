@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
 }
-
 android {
     namespace = "com.log.indrop"
     compileSdk = 34
@@ -42,62 +41,66 @@ android {
 }
 
 dependencies {
+    // Compose BOM
     val composeBom = platform("androidx.compose:compose-bom:2024.03.00")
     implementation(composeBom)
     androidTestImplementation(composeBom)
+
+    // Projects
     implementation(project(":data"))
     implementation(project(":network"))
-    implementation(libs.coil.compose)
-    implementation(libs.material3)
-    implementation(libs.androidx.navigation.compose)
+
+    // Core Android
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+
+    // Compose
     implementation(libs.androidx.material3.android)
     implementation(libs.androidx.ui.tooling.preview.android)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.coil.compose)
+    implementation(libs.material3)
+    implementation(libs.androidx.material3.window.size)
+    implementation(libs.androidx.constraintlayout.compose)
 
-    // Android Studio Preview support
+    // Compose Preview
     implementation(libs.ui.tooling.preview)
     debugImplementation(libs.ui.tooling)
+
+    // Material Icons
+    implementation(libs.androidx.material.icons.core)
+    implementation(libs.androidx.material.icons.extended)
+
+    // DI
+    implementation(libs.koin.androidx.compose)
+
+    // Serialization
+    implementation(libs.kotlinx.serialization.json)
+
+    // Testing
+    testImplementation(libs.junit)
+    testImplementation(libs.mockk)
 
     // UI Tests
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.test.manifest)
 
-    // custom design system based on Foundation)
-    implementation(libs.androidx.material.icons.core)
-    // Optional - Add full set of material icons
-    implementation(libs.androidx.material.icons.extended)
-    // Optional - Add window size utils
-    implementation("androidx.compose.material3:material3-window-size-class")
-
-    // Android инструментарий в junit тесте
-    testImplementation(libs.mockk)
-// Core library
+    // Android Testing
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.core)
-
-    // AndroidJUnitRunner and JUnit Rules
     androidTestImplementation(libs.androidx.runner)
     androidTestImplementation(libs.androidx.rules)
-
-    // Assertions
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.androidx.truth)
 
-    // Espresso dependencies
+    // Espresso Testing
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.androidx.espresso.contrib)
     androidTestImplementation(libs.androidx.espresso.intents)
     androidTestImplementation(libs.androidx.espresso.accessibility)
     androidTestImplementation(libs.androidx.espresso.web)
     androidTestImplementation(libs.androidx.idling.concurrent)
-
-    implementation(libs.kotlinx.serialization.json)
-    androidTestImplementation( libs.androidx.espresso.idling.resource)
-
-    // Compose Constraint Layout
-    implementation(libs.androidx.constraintlayout.compose)
+    androidTestImplementation(libs.androidx.espresso.idling.resource)
 }

@@ -45,19 +45,21 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 import androidx.compose.ui.platform.LocalContext
+import org.koin.android.ext.android.inject
+import org.koin.androidx.compose.KoinAndroidContext
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
 class Main: AppCompatActivity() {
-    private val mainViewModel: MainViewModel by viewModels()
-    private val networkViewModel: NetworkViewModel by viewModels()
-    private lateinit var networkManager: NetworkManager
+    private val mainViewModel: MainViewModel by viewModel()
+    private val networkViewModel: NetworkViewModel by viewModel()
+
+    private val networkManager: NetworkManager by inject()
     private lateinit var pickMedia: ActivityResultLauncher<PickVisualMediaRequest>
 
     @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        networkManager = NetworkManager(mainViewModel)
 
         GlobalScope.launch {
             mainViewModel.makeFakeUserData()
@@ -79,15 +81,17 @@ class Main: AppCompatActivity() {
 
 
             InkTheme {
-                Screen(mainViewModel, networkManager) { intent, metaData ->
-                    when(intent) {
-                        "ChooseImage" -> {
-                            pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
-                        }
-                        "sendMessage" -> {
-                            coroutine.launch {
-                                networkViewModel.newOutputMessage(metaData!!)
-                                mainViewModel.addMessage(Json.decodeFromString<Message>(metaData))
+                KoinAndroidContext {
+                    Screen(mainViewModel, networkManager) { intent, metaData ->
+                        when(intent) {
+                            "ChooseImage" -> {
+                                pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
+                            }
+                            "sendMessage" -> {
+                                coroutine.launch {
+                                    networkViewModel.newOutputMessage(metaData!!)
+                                    mainViewModel.addMessage(Json.decodeFromString<Message>(metaData))
+                                }
                             }
                         }
                     }

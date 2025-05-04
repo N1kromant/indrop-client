@@ -37,34 +37,33 @@ val ktor_version: String by project
 
 
 dependencies {
-
     implementation(project(":data"))
 
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.websockets)
-    implementation(libs.ktor.client.serialization)
-
+    // Core Android
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
-    implementation(libs.lifecycle.viewmodel.android)
+
+    // Lifecycle
+    implementation(libs.androidx.lifecycle.viewmodel.android)  // или libs.lifecycle.viewmodel.android
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)      // или libs.lifecycle.viewmodel.ktx
+
+    // Kotlin Extensions
+    implementation(libs.kotlinx.datetime)
+    implementation(libs.kotlinx.serialization.json)
+
+    // Ktor - HTTP Client
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.websockets)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.serialization)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.ktor.client.logging)
+
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-
-    implementation(libs.kotlinx.datetime)
-    implementation(libs.kotlinx.serialization.json)
-    // Ktor Client Core
-// или
-    implementation(libs.ktor.client.okhttp) // OkHttp - альтернативный движок для JVM
-
-// Ktor Client JSON для работы с JSON
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.serialization.kotlinx.json)
-
-// Ktor Client Logging (опционально, для отладки запросов)
-    implementation(libs.ktor.client.logging)
-
-    implementation(libs.androidx.lifecycle.viewmodel.ktx)
 }
