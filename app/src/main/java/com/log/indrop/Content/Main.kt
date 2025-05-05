@@ -130,14 +130,12 @@ fun Screen(viewModel: MainViewModel = koinViewModel(), networkManager: NetworkMa
     navigationHandler.setNavController(navController)
 
 //    val messagesViewModel by messagesViewModel.state.collectAsState()
-    val messagesViewModelEffect by messagesViewModel.effect.collectAsState()
-    val lifecycleOwner = LocalLifecycleOwner.current
-    LaunchedEffect(messagesViewModel) { }
+    val messagesState by messagesViewModel.state.collectAsState()
 
-    // Используем LaunchedEffect для сбора эффектов с учетом жизненного цикла
-    LaunchedEffect(lifecycleOwner) {
-        messagesViewModelEffect?.let {
-            when (it) {
+    // Для эффектов (событий) используем отдельный LaunchedEffect
+    LaunchedEffect(messagesViewModel) {
+        messagesViewModel.effect.collect { effect ->
+            when (effect) {
                 is MessagesEffect.RouteToSearch -> {
                     navController.navigate("search") {
                         popUpTo("messages")

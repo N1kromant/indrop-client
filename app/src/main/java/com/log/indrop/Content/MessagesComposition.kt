@@ -34,15 +34,20 @@ import com.log.data.Message
 import com.log.data.UserData
 import com.log.indrop.FakeContent.makeFakeChats
 import com.log.indrop.R
+import com.log.indrop.Repo.SearchRepositoryImpl
+import com.log.indrop.ViewModels.MessagesViewModel.MessagesIntent
+import com.log.indrop.ViewModels.MessagesViewModel.MessagesViewModel
 import com.log.indrop.ui.theme2.InkTheme
 import com.log.indrop.ViewModels.Search.SearchIntent
 import com.log.indrop.ViewModels.Search.SearchViewModel
+import com.log.indrop.api.SearchApiImpl
+import com.log.indrop.api.SearchApiTestImpl
 import org.koin.androidx.compose.koinViewModel
 import java.time.Duration
 import java.time.OffsetDateTime
 
 @Composable
-fun MessagesPage(searchViewModel: SearchViewModel = koinViewModel(), chats: List<ChatData>, onClickChat: (chatData: ChatData) -> Unit) {
+fun MessagesPage(messagesViewModel: MessagesViewModel = koinViewModel(), chats: List<ChatData>, onClickChat: (chatData: ChatData) -> Unit) {
 
     Column {
         Row (
@@ -63,8 +68,9 @@ fun MessagesPage(searchViewModel: SearchViewModel = koinViewModel(), chats: List
                 modifier = Modifier
                     .weight(1f)
             )
+
             IconButton(
-                onClick = { searchViewModel.processIntent( SearchIntent.GoBackIntent ) },
+                onClick = { messagesViewModel.processIntent(MessagesIntent.SearchButtonPressed) },
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
             ) {
@@ -93,7 +99,7 @@ fun MessagesPage(searchViewModel: SearchViewModel = koinViewModel(), chats: List
 fun MessagesPagePreview() {
     val fakeChats = makeFakeChats()
     InkTheme {
-        MessagesPage(SearchViewModel(), fakeChats, {})
+        MessagesPage(MessagesViewModel(), fakeChats, {})
     }
 }
 

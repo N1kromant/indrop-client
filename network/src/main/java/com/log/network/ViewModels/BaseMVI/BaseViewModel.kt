@@ -2,6 +2,7 @@ package com.log.network.ViewModels.BaseMVI
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -25,9 +26,12 @@ abstract class BaseViewModel<I : BaseIntent, S : BaseState, E : BaseEffect>(init
     private val _state = MutableStateFlow(initialState)
     val state: StateFlow<S> = _state.asStateFlow()
 
-    // Flow для одноразовых событий (side effects)
-    private val _effect = MutableStateFlow<E?>(null)
-    val effect: StateFlow<E?> = _effect.asStateFlow()
+    // SharedFlow для одноразовых событий (side effects)
+    private val _effect = MutableSharedFlow<E>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    val effect: SharedFlow<E> = _effect.asSharedFlow()
 
     /**
      * Обрабатывает intent и обновляет состояние и/или генерирует эффекты
@@ -58,9 +62,8 @@ abstract class BaseViewModel<I : BaseIntent, S : BaseState, E : BaseEffect>(init
      * @param effect эффект для отправки
      */
     protected fun emitEffect(effect: E) {
-        _effect.value = effect
-        // Сбрасываем эффект после эмиссии для одноразового использования
-        _effect.value = null
+        viewModelScope.launch {
+            _effect.emit(effect)
+        }
     }
 }
-

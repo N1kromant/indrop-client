@@ -21,6 +21,8 @@ import com.log.indrop.ViewModels.Search.SearchViewModel
 import org.koin.androidx.compose.koinViewModel
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
+import com.log.indrop.Repo.SearchRepositoryImpl
+import com.log.indrop.api.SearchApiTestImpl
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -52,6 +54,20 @@ fun SearchPage(viewModel: SearchViewModel = koinViewModel()) {
     }
 //    viewModel.processIntent(SearchIntent.GoBackIntent)
 }
+
+//@Preview
+//@Composable
+//fun SearchPagePreview() {
+//    val viewModel = SearchViewModel(
+//        SearchRepositoryImpl(
+//            SearchApiTestImpl()
+//        )
+//    )
+//    SearchPage(
+//        viewModel
+//    )
+//}
+
 
 @Composable
 fun UserListItem(name: String, login: String, onClick: (event: String) -> Unit) {
