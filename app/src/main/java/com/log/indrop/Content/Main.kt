@@ -20,6 +20,7 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -44,9 +45,17 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.log.indrop.ViewModels.MessagesViewModel.MessagesEffect
+import com.log.indrop.ViewModels.MessagesViewModel.MessagesViewModel
+import com.log.indrop.navigation.NavigationHandlerImpl
 import org.koin.android.ext.android.inject
 import org.koin.androidx.compose.KoinAndroidContext
+import org.koin.androidx.compose.koinViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.compose.koinInject
+import androidx.lifecycle.flowWithLifecycle
 
 
 class Main: AppCompatActivity() {
@@ -81,7 +90,7 @@ class Main: AppCompatActivity() {
 
             InkTheme {
                 KoinAndroidContext {
-                    Screen(mainViewModel, networkManager) { intent, metaData ->
+                    Screen() { intent, metaData ->
                         when(intent) {
                             "ChooseImage" -> {
                                 pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
@@ -111,13 +120,32 @@ class Main: AppCompatActivity() {
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun Screen(viewModel: MainViewModel,networkManager: NetworkManager, onClick: (button: String, metaData: String?) -> Unit) {
+fun Screen(viewModel: MainViewModel = koinViewModel(), networkManager: NetworkManager = koinInject(), messagesViewModel: MessagesViewModel = koinViewModel(),  navigationHandler: NavigationHandlerImpl = koinInject(), onClick: (button: String, metaData: String?) -> Unit) {
     val navController = rememberNavController()
     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
     val isHideNavBar by viewModel.isHideNavBar.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 
     val context = LocalContext.current
+    navigationHandler.setNavController(navController)
+
+//    val messagesViewModel by messagesViewModel.state.collectAsState()
+    val messagesViewModelEffect by messagesViewModel.effect.collectAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(messagesViewModel) { }
+
+    // Используем LaunchedEffect для сбора эффектов с учетом жизненного цикла
+    LaunchedEffect(lifecycleOwner) {
+        messagesViewModelEffect?.let {
+            when (it) {
+                is MessagesEffect.RouteToSearch -> {
+                    navController.navigate("search") {
+                        popUpTo("messages")
+                    }
+                }
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -223,6 +251,10 @@ fun Screen(viewModel: MainViewModel,networkManager: NetworkManager, onClick: (bu
 //                    viewModel.chats.value.forEach {
 //
 //                    }
+
+                }
+                composable("search") {
+                    SearchPage()
 
                 }
             }

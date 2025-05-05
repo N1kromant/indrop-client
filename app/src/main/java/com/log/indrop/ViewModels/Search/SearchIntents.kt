@@ -1,4 +1,4 @@
-package com.log.network.ViewModels.Search
+package com.log.indrop.ViewModels.Search
 
 import com.log.network.ViewModels.BaseMVI.BaseIntent
 

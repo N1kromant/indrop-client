@@ -2,11 +2,15 @@ package com.log.indrop.ViewModels.MessagesViewModel
 
 import com.log.network.ViewModels.BaseMVI.BaseViewModel
 
-sealed class MessagesViewModel(initialState: MessagesState) : BaseViewModel<MessagesIntent, MessagesState, MessagesEffect>(
-    initialState
+class MessagesViewModel() : BaseViewModel<MessagesIntent, MessagesState, MessagesEffect>(
+    MessagesState()
 ) {
     override suspend fun handleIntent(intent: MessagesIntent) {
-        TODO("Not yet implemented")
+        when(intent) {
+            MessagesIntent.SearchButtonPressed -> {
+                 emitEffect(effect = MessagesEffect.RouteToSearch)
+            }
+        }
     }
 
 }

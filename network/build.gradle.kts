@@ -47,6 +47,7 @@ dependencies {
     // Lifecycle
     implementation(libs.androidx.lifecycle.viewmodel.android)  // или libs.lifecycle.viewmodel.android
     implementation(libs.androidx.lifecycle.viewmodel.ktx)      // или libs.lifecycle.viewmodel.ktx
+    implementation(libs.androidx.lifecycle.runtime.ktx)
 
     // Kotlin Extensions
     implementation(libs.kotlinx.datetime)
