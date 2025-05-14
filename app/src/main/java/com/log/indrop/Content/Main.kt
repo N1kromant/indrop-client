@@ -133,17 +133,7 @@ fun Screen(viewModel: MainViewModel = koinViewModel(), networkManager: NetworkMa
     val messagesState by messagesViewModel.state.collectAsState()
 
     // Для эффектов (событий) используем отдельный LaunchedEffect
-    LaunchedEffect(messagesViewModel) {
-        messagesViewModel.effect.collect { effect ->
-            when (effect) {
-                is MessagesEffect.RouteToSearch -> {
-                    navController.navigate("search") {
-                        popUpTo("messages")
-                    }
-                }
-            }
-        }
-    }
+
 
     Box(
         modifier = Modifier
@@ -213,7 +203,7 @@ fun Screen(viewModel: MainViewModel = koinViewModel(), networkManager: NetworkMa
                     coroutineScope.launch {
                         viewModel.showNavBar()
                     }
-                    MessagesPage(chats = viewModel.chats.collectAsState().value) {
+                    MessagesPage(chats = viewModel.chats.collectAsState().value, navController = navController) {
                         try {
                         coroutineScope.launch {
                             viewModel.openChat(it)

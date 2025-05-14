@@ -20,6 +20,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
@@ -28,6 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.log.data.ChatData
 import com.log.data.Content
 import com.log.data.Message
@@ -35,6 +37,7 @@ import com.log.data.UserData
 import com.log.indrop.FakeContent.makeFakeChats
 import com.log.indrop.R
 import com.log.indrop.Repo.SearchRepositoryImpl
+import com.log.indrop.ViewModels.MessagesViewModel.MessagesEffect
 import com.log.indrop.ViewModels.MessagesViewModel.MessagesIntent
 import com.log.indrop.ViewModels.MessagesViewModel.MessagesViewModel
 import com.log.indrop.ui.theme2.InkTheme
@@ -45,9 +48,20 @@ import com.log.indrop.api.SearchApiTestImpl
 import org.koin.androidx.compose.koinViewModel
 import java.time.Duration
 import java.time.OffsetDateTime
-
 @Composable
-fun MessagesPage(messagesViewModel: MessagesViewModel = koinViewModel(), chats: List<ChatData>, onClickChat: (chatData: ChatData) -> Unit) {
+fun MessagesPage(messagesViewModel: MessagesViewModel = koinViewModel(), chats: List<ChatData>, navController: NavController, onClickChat: (chatData: ChatData) -> Unit) {
+
+    LaunchedEffect(messagesViewModel) {
+        messagesViewModel.effect.collect { effect ->
+            when (effect) {
+                is MessagesEffect.RouteToSearch -> {
+                    navController.navigate("search") {
+                        popUpTo("messages")
+                    }
+                }
+            }
+        }
+    }
 
     Column {
         Row (
@@ -94,14 +108,14 @@ fun MessagesPage(messagesViewModel: MessagesViewModel = koinViewModel(), chats: 
     }
 }
 
-@Preview
-@Composable
-fun MessagesPagePreview() {
-    val fakeChats = makeFakeChats()
-    InkTheme {
-        MessagesPage(MessagesViewModel(), fakeChats, {})
-    }
-}
+//@Preview
+//@Composable
+//fun MessagesPagePreview() {
+//    val fakeChats = makeFakeChats()
+//    InkTheme {
+//        MessagesPage(MessagesViewModel(), fakeChats)
+//    }
+//}
 
 @Composable
 fun ChatRow(data: ChatData, onClick: (chatData: ChatData) -> Unit) {
