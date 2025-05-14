@@ -17,3 +17,5 @@ val purple80 = Color(0xFF390F59)
 
 val fgColor = Color(0xFF684D7D)
 val bgColor = Color(0xFF43186E)
+
+val white = Color(0xFFFFFFFF)

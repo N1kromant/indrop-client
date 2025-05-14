@@ -6,6 +6,6 @@ sealed class SearchEffect : BaseEffect {
     data class NavigateToChatEffect(
         val chatId: Long
     ) : SearchEffect()
-
+    data object ErrorCreateChat: SearchEffect()
     data object NavigateBackEffect: SearchEffect()
 }

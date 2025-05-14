@@ -1,7 +1,9 @@
 package com.log.indrop.Content
 
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,35 +26,163 @@ import androidx.compose.ui.res.stringResource
 import com.log.indrop.Repo.SearchRepositoryImpl
 import com.log.indrop.api.SearchApiTestImpl
 
-@OptIn(ExperimentalFoundationApi::class)
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Icon
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.navigation.NavController
+import com.log.indrop.ViewModels.MessagesViewModel.MessagesEffect
+import com.log.indrop.ViewModels.Search.SearchEffect
+import kotlinx.coroutines.flow.collectLatest
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun SearchPage(viewModel: SearchViewModel = koinViewModel()) {
+fun SearchPage(viewModel: SearchViewModel = koinViewModel(), navController: NavController) {
     val state by viewModel.state.collectAsState()
+    var query by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // Заголовок
-        stickyHeader {
-            Text(text = stringResource(id = R.string.all_users))
-        }
-
-        // Список пользователей
-        itemsIndexed(
-            items = state.allUsers,
-            key = { index, user -> user?.authorId ?: index }
-        ) { _, user ->
-            user?.let { userdata ->
-                UserListItem(
-                    name = "${userdata.firstName} ${userdata.lastName}",
-                    login = userdata.login,
-                ) {
-                    viewModel.processIntent(SearchIntent.ChatPressedIntent(userdata.authorId ?: 0))
+    LaunchedEffect(Unit) {
+        viewModel.effect.collectLatest { effect ->
+            when (effect) {
+                is SearchEffect.NavigateToChatEffect -> {
+                    Toast.makeText(context, "Чат создан!", Toast.LENGTH_SHORT).show()
+                    navController.navigate("messages")
                 }
+                is SearchEffect.ErrorCreateChat -> {
+                    Toast.makeText(context, "Чат не создан!", Toast.LENGTH_SHORT).show()
+                }
+                is SearchEffect.NavigateBackEffect -> {}
             }
         }
     }
-//    viewModel.processIntent(SearchIntent.GoBackIntent)
+
+    Column(modifier = Modifier.fillMaxSize()) {
+
+        // 🔍 Поле поиска и кнопка
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.primaryContainer)
+                .padding(8.dp)
+        ) {
+            IconButton(onClick = {navController.navigate("messages")}) {
+                Icon(painter = painterResource(id = R.drawable.go_back), contentDescription = "goBack", tint = MaterialTheme.colorScheme.onPrimary)
+            }
+            TextField(
+                value = query,
+                singleLine = true, // чтобы не было переноса строки
+                onValueChange = {
+                    query = it
+                    viewModel.processIntent(SearchIntent.SearchFieldChangedIntent(query))
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Done // показываем кнопку "Done" на клавиатуре
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus() // скрываем клавиатуру
+                    }
+                ),
+                modifier = Modifier.weight(1f),
+                placeholder = { Text("Введите логин или имя") },
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            )
+
+        }
+
+        // 📜 Список пользователей
+        LazyColumn(
+            modifier = Modifier.weight(1f)
+        ) {
+            stickyHeader {
+                Text(
+                    text = stringResource(id = R.string.all_users),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.background)
+                        .padding(8.dp)
+                )
+            }
+
+            itemsIndexed(
+                items = state.allUsers,
+                key = { index, user -> user?.authorId ?: index }
+            ) { _, user ->
+                user?.let { userdata ->
+                    UserListItemWithCheckbox(
+                        name = "${userdata.firstName} ${userdata.lastName}",
+                        login = userdata.login,
+                        checked = state.selectedUserIds.contains(userdata.authorId),
+                        onCheckedChange = {
+                            viewModel.processIntent(
+                                SearchIntent.ToggleUserSelectionIntent(userdata.authorId ?: 0)
+                            )
+                        }
+                    )
+                }
+            }
+        }
+
+        // ➕ Кнопка "Создать чат"
+        if (state.selectedUserIds.isNotEmpty()) {
+            Button(
+                onClick = {
+                    viewModel.processIntent(SearchIntent.CreateChatPressedIntent)
+
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text("Создать чат")
+            }
+        }
+    }
+}
+
+@Composable
+fun UserListItemWithCheckbox(
+    name: String,
+    login: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCheckedChange(!checked) }
+
+            .background(MaterialTheme.colorScheme.primaryContainer)
+    ) {
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Column {
+            Text(text = name)
+            Text(text = "@$login", style = MaterialTheme.typography.bodySmall)
+        }
+    }
 }
 
 //@Preview
@@ -74,6 +204,7 @@ fun UserListItem(name: String, login: String, onClick: (event: String) -> Unit) 
     Column (
         Modifier
             .clickable { onClick("") }
+
     ) {
         ListItem(
             headlineContent = { Text(text = name) },
@@ -86,10 +217,11 @@ fun UserListItem(name: String, login: String, onClick: (event: String) -> Unit) 
             },
             supportingContent = {
                 Text(login)
-            }
+            },
         )
     }
 }
+
 @Preview
 @Composable
 fun UserListItemPreview() {

@@ -12,4 +12,7 @@ sealed class SearchIntent : BaseIntent {
     ): SearchIntent()
 
     data object GoBackIntent: SearchIntent()
+
+    data class ToggleUserSelectionIntent(val userId: Long) : SearchIntent()
+    object CreateChatPressedIntent : SearchIntent()
 }

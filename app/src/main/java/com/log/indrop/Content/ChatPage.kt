@@ -37,6 +37,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -71,7 +72,7 @@ fun ChatHeader(data: ChatData, onClick: (task: String, id: String?) -> Unit) {
             .verticalScroll(rememberScrollState())
     ) {
         Button(onClick = { onClick("goBack", null) }, Modifier.weight(0.3f)) {
-            Icon(painter = painterResource(id = R.drawable.go_back), contentDescription = "goBack")
+            Icon(painter = painterResource(id = R.drawable.go_back), contentDescription = "goBack", tint = MaterialTheme.colorScheme.onPrimary)
         }
         Image(
             painter = painterResource(id = R.drawable.profile),

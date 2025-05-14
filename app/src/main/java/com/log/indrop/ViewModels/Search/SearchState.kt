@@ -7,5 +7,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 data class SearchState(
     var searchField: String = "",
     var recentUsers: List<UserData?> = emptyList(), //Можно брать из последних 3 чатов
-    var allUsers: List<UserData?> = emptyList()
+    var allUsers: List<UserData?> = emptyList(),
+
+    val selectedUserIds: Set<Long> = emptySet(),
+    val searchText: String = ""
 ) : BaseState

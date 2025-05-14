@@ -242,7 +242,7 @@ fun Screen(viewModel: MainViewModel = koinViewModel(), networkManager: NetworkMa
 
                 }
                 composable("search") {
-                    SearchPage()
+                    SearchPage(navController = navController)
 
                 }
             }

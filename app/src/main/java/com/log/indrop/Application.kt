@@ -9,6 +9,7 @@ import com.log.network.ViewModels.MainViewModel
 import com.log.network.ViewModels.NetworkViewModel
 import com.log.indrop.ViewModels.Search.SearchViewModel
 import com.log.indrop.api.SearchApi
+import com.log.indrop.api.SearchApiImpl
 import com.log.indrop.api.SearchApiTestImpl
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
