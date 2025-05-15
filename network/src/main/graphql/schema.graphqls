@@ -1,0 +1,117 @@
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+type Query {
+  chats: [Chat!]!
+  chat(id: ID!): Chat
+  getChats(userId: ID!): [Chat!]!
+  searchUsers(query: String!): [User!]!
+}
+
+type Mutation {
+  createChat(name: String!): ChatPayload!
+  sendMessage(input: SendMessageInput!): MessagePayload!
+  addUser(input: AddUserInput!): AddUserPayload!
+  authenticateUser(login: String!, password: String!): AuthenticateUserPayload!
+  addChat(input: AddChatInput!): AddChatPayload!
+}
+
+type Subscription {
+  messageAdded(chatId: ID!): Message!
+  messageNotification(userId: ID!): MessageNotification!
+}
+
+type MessageNotification {
+  chatId: ID!
+  senderLogin: String!
+  messagePreview: String!
+}
+
+type Chat {
+  chatId: ID!
+  title: String!
+  messages: [Message!]!
+  members: [Int!]!
+  avatar: String
+}
+
+type Message {
+  messageId: ID!
+  author: User!
+  dateTime: String!
+  content: Content!
+  isReplyTo: ID
+}
+
+type User {
+  authorId: ID!
+  login: String!
+  firstName: String!
+  lastName: String!
+  icon: String
+}
+
+type Content {
+  text: String
+  images: String
+}
+
+type ChatPayload {
+  success: Boolean!
+  chatId: ID
+}
+
+type MessagePayload {
+  success: Boolean!
+}
+
+type AddUserPayload {
+  success: Boolean!
+  AddUserResponseUserData: UserResponseData
+}
+
+type UserResponseData {
+  login: String!
+  password: String!
+  name: String!
+}
+
+type AuthenticateUserPayload {
+  success: Boolean!
+  token: String
+  userId: ID
+}
+
+type AddChatPayload {
+  success: Boolean!
+  chatId: ID
+}
+
+input AddUserInput {
+  login: String!
+  firstName: String!
+  lastName: String!
+  password: String!
+}
+
+input AddChatInput {
+  title: String!
+  avatar: String
+  memberIds: [Int!]!
+}
+
+input SendMessageInput {
+  chatId: ID!
+  authorId: ID!
+  text: String!
+  images: String
+  isReplyTo: ID
+}
+
+type UserSearchResult {
+  authorId: ID!
+  login: String!
+}

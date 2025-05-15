@@ -1,0 +1,125 @@
+query GetChats($userId: ID!) {
+  chats: getChats(userId: $userId) {
+    chatId
+    title
+    avatar
+    members
+    messages {
+      messageId
+      author {
+        authorId
+        login
+        firstName
+        lastName
+        icon
+      }
+      dateTime
+      content {
+        text
+        images
+      }
+      isReplyTo
+    }
+  }
+}
+
+query SearchUsers($query: String!) {
+  searchUsers(query: $query) {
+    authorId
+    login
+    firstName
+    lastName
+    icon
+  }
+}
+
+# Файл src/main/graphql/CreateChat.graphql
+mutation CreateChat($name: String!) {
+  createChat(name: $name) {
+    success
+    chatId
+  }
+}
+
+# Файл src/main/graphql/MessageNotificationSubscription.graphql
+subscription MessageNotification($userId: ID!) {
+  messageNotification(userId: $userId) {
+    chatId
+    senderLogin
+    messagePreview
+  }
+}
+
+# Файл src/main/graphql/MessageNotificationSubscription.graphql
+subscription MessageAdded($chatId: ID!) {
+  messageAdded(chatId: $chatId) {
+      messageId
+      author
+      {
+        authorId
+        login
+        firstName
+        lastName
+        icon
+      }
+      dateTime
+      content
+      {
+        text
+        images
+      }
+      isReplyTo
+
+  }
+}
+
+# Файл src/main/graphql/AddUser.graphql
+mutation AddUser($login: String!, $firstName: String!, $lastName: String!, $password: String!) {
+  addUser(input: {
+    login: $login
+    firstName: $firstName
+    lastName: $lastName
+    password: $password
+  }) {
+    success
+    AddUserResponseUserData {
+      login
+      password
+      name
+    }
+  }
+}
+
+# Файл src/main/graphql/AuthenticateUser.graphql
+mutation AuthenticateUser($login: String!, $password: String!) {
+  authenticateUser(login: $login, password: $password) {
+    success
+    token
+    userId
+  }
+}
+
+# Файл src/main/graphql/AddChat.graphql
+mutation AddChat($title: String!, $avatar: String, $memberIds: [Int!]!) {
+  addChat(input: {
+    title: $title
+    avatar: $avatar
+    memberIds: $memberIds
+  }) {
+    success
+    chatId
+    }
+
+}
+
+mutation SendMessage($chatId: ID!, $authorId: ID!, $text: String!, $images: String, $isReplyTo: ID) {
+  sendMessage(input: {
+    chatId: $chatId
+    authorId: $authorId
+    text: $text
+    images: $images
+    isReplyTo: $isReplyTo
+  }) {
+    success
+  }
+}
