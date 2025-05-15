@@ -32,19 +32,23 @@ import kotlinx.serialization.json.*
 
 import java.util.*
 import kotlinx.coroutines.*
-
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.*
 import kotlinx.serialization.json.JsonElement
-
 import android.util.Log
+
+import com.apollographql.apollo3.ApolloClient
+import com.apollographql.apollo3.network.http.DefaultHttpEngine
+import com.apollographql.apollo3.network.ws.GraphQLWsProtocol
+import com.apollographql.apollo3.network.ws.WebSocketNetworkTransport
+import com.example.graphql.*
+import kotlinx.coroutines.*
+import org.slf4j.LoggerFactory
+import java.time.OffsetDateTime
+
+
+
 
 @OptIn(DelicateCoroutinesApi::class)
 class NetworkManager() :
@@ -70,6 +74,27 @@ class NetworkManager() :
     private val url = select
     private val uri = "http://$select$port"
     private val graphqlUrl = "$uri/graphql"
+
+    val graphqlUrlTEST = "http://192.168.0.157:4000/graphql"
+    val graphqlUrlTESTws = "ws://192.168.0.157:4000/graphql"
+
+
+
+    val apolloClient = ApolloClient.Builder()
+        .serverUrl(graphqlUrlTEST)
+        .subscriptionNetworkTransport(
+            WebSocketNetworkTransport.Builder()
+                .serverUrl(graphqlUrlTESTws)
+                .protocol(GraphQLWsProtocol.Factory())
+                .build()
+        )
+        .httpEngine(DefaultHttpEngine())
+        .build()
+
+    data class ChatCreationResult(val success: Boolean, val chatId: Int? = null)
+
+
+
 
     @OptIn(InternalSerializationApi::class)
     @Serializable
@@ -119,146 +144,65 @@ class NetworkManager() :
         val name: String
     )
 
-    suspend fun loginTry(
-        login: String,
-        password: String
-    ): AuthorizationResponse {
-        val graphqlQueryAuth = """
-        mutation {
-            authenticateUser(login: "$login", password: "$password") {
-                success
-                token
-            }
-        }
-    """.trimIndent()
 
+    @Serializable
+    data class loginResponse(
+        val success: Boolean,
+        val token: String?,
+        val userId: Long?
+    )
 
-
-        val client = HttpClient {
-            install(ContentNegotiation) {
-                json(Json {
-                    ignoreUnknownKeys = true  // Игнорируем незнакомые ключи
-                    isLenient = true  // Разрешаем более гибкое парсинг
-                    coerceInputValues = true // Преобразовывать входные значения в null, если они не могут быть преобразованы
-                    encodeDefaults = true  // Кодировать даже значения по умолчанию
-                })
-            }
-        }
-
-        var authResponse: AuthorizationResponse
-
+    // Функция для регистрации нового пользователя
+    suspend fun registerUser(client: ApolloClient = apolloClient, login: String, password: String, firstName: String): Boolean {
         try {
-            withTimeout(5000) {
-                val response: HttpResponse = withContext(Dispatchers.IO) {
-                    client.post(graphqlUrl) {
-                        contentType(ContentType.Application.Json)
-                        setBody(mapOf("query" to graphqlQueryAuth))
-                    }
-                }
+            val mutation = AddUserMutation(
+                login = login,
+                firstName = firstName,
+                lastName = firstName,
+                password = password
+            )
 
-                println("Статус ответа: ${response.status}")
-                println("Тело ответа: ${response.bodyAsText()}")
+            val response = client.mutation(mutation).execute()
 
-                if (response.status == HttpStatusCode.OK) {
-                    println("Статус ответа: ${response.status}")
-                    val responseBody = response.bodyAsText()  // Получаем тело ответа как строку
-                    println("Тело ответа: $responseBody")
-
-                    // Десериализуем JSON в объект AuthorizationResponse
-                    authResponse = Json.decodeFromString(responseBody)
-                }
-                else {
-                    authResponse = AuthorizationResponse(data = AuthenticateUser(AuthenticateUserResponse(success = false, token = null)))
-                }
+            if (response.hasErrors()) {
+                println("Ошибка при регистрации: ${response.errors}")
+                return false
             }
-        } catch (e: TimeoutCancellationException) {
-            println("Ответ не был получен в течение 10 секунд")
-            authResponse = AuthorizationResponse(data = AuthenticateUser(AuthenticateUserResponse(success = false, token = null)))
+
+            return response.data?.addUser?.success == true
         } catch (e: Exception) {
-            println("Ошибка: ${e.message}")
-            authResponse = AuthorizationResponse(data = AuthenticateUser(AuthenticateUserResponse(success = false, token = null)))
-        } finally {
-            client.close()
-        }
-
-
-        return authResponse
-    }
-
-
-
-    suspend fun registerTry(
-        login: String,
-        password: String,
-        firstName: String,
-    ): RegistrationResponse {
-        val graphqlQueryRegister = """
-    mutation {
-        addUser(input: {
-            login: "$login",
-            firstName: "$firstName",
-            lastName: "$firstName",
-            password: "$password"
-        }) {
-            success
-            AddUserResponseUserData {
-                login
-                password
-                name
-            }
+            println("Исключение при регистрации: ${e.message}")
+            return false
         }
     }
-""".trimIndent()
 
-        val client = HttpClient {
-            install(ContentNegotiation) {
-                json(Json {
-                    ignoreUnknownKeys = true  // Игнорируем незнакомые ключи
-                    isLenient = true  // Разрешаем более гибкое парсинг
-                    coerceInputValues = true // Преобразовывать входные значения в null, если они не могут быть преобразованы
-                    encodeDefaults = true  // Кодировать даже значения по умолчанию
-                })
-            }
-        }
-
-        var registerResponse: RegistrationResponse
-
+    // Функция для авторизации пользователя
+    suspend fun loginUser(client: ApolloClient = apolloClient, login: String, password: String): loginResponse {
         try {
-            withTimeout(10000) {
-                val response: HttpResponse = withContext(Dispatchers.IO) {
-                    client.post(graphqlUrl) {
-                        contentType(ContentType.Application.Json)
-                        setBody(mapOf("query" to graphqlQueryRegister))
-                    }
-                }
+            val mutation = AuthenticateUserMutation(
+                login = login,
+                password = password
+            )
 
-                println("Статус ответа: ${response.status}")
-                println("Тело ответа: ${response.bodyAsText()}")
+            val response = client.mutation(mutation).execute()
 
-                if (response.status == HttpStatusCode.OK) {
-                    println("Статус ответа: ${response.status}")
-                    val responseBody = response.bodyAsText()  // Получаем тело ответа как строку
-                    Log.i("MyApp","Тело ответа: $responseBody")
-
-                    registerResponse = Json.decodeFromString(responseBody)
-
-                }
-                else {
-                    registerResponse = RegistrationResponse(data = RegistrateUser(AddUserResponse(success = false,AddUserResponseUserData = null)))
-                }
+            if (response.hasErrors()) {
+                println("Ошибка при авторизации: ${response.errors}")
+                return loginResponse(success = false, token = null, userId = null)
             }
-        } catch (e: TimeoutCancellationException) {
-            println("Ответ не был получен в течение 10 секунд")
-            registerResponse = RegistrationResponse(data = RegistrateUser(AddUserResponse(success = false, AddUserResponseUserData = null)))
-        } catch (e: Exception) {
-            println("Ошибка: ${e.message}")
-            registerResponse = RegistrationResponse(data = RegistrateUser(AddUserResponse(success = false, AddUserResponseUserData = null)))
-        } finally {
-            client.close()
-        }
+            return if(response.data?.authenticateUser?.success != null) {
+                if(response.data?.authenticateUser?.success == true) {
+                    loginResponse(success = true, token = response.data?.authenticateUser?.token, userId = response.data?.authenticateUser?.userId?.toLong())
+                } else loginResponse(success = false, token = null, userId = null)
+            } else loginResponse(success = false, token = null, userId = null)
 
-        return registerResponse
+        } catch (e: Exception) {
+            println("Исключение при авторизации: ${e.message}")
+            return loginResponse(success = false, token = null, userId = null)
+        }
     }
+
+
 
     override fun setPost(post: PostData) {
         TODO("Not yet implemented")

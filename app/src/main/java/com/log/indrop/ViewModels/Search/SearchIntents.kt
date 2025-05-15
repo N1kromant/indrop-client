@@ -14,5 +14,5 @@ sealed class SearchIntent : BaseIntent {
     data object GoBackIntent: SearchIntent()
 
     data class ToggleUserSelectionIntent(val userId: Long) : SearchIntent()
-    object CreateChatPressedIntent : SearchIntent()
+    data class CreateChatPressedIntent(val title: String, val icon: String?, val myId: Long) : SearchIntent()
 }

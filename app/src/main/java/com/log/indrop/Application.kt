@@ -31,7 +31,7 @@ class App : Application() {
 
             single { NetworkManager() }
             single { NavigationHandlerImpl() }
-            single<SearchApi> { SearchApiTestImpl() }
+            single<SearchApi> { SearchApiImpl(get()) }
             single { SearchRepositoryImpl(get<SearchApi>()) }
 
             // Создание нового экземпляра при каждом запросе
@@ -47,5 +47,7 @@ class App : Application() {
             // Модули с зависимостями
             modules(appModule)
         }
+
+
     }
 }

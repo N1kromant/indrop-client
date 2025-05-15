@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     kotlin("plugin.serialization") version "1.8.0"
+
+    id("com.apollographql.apollo3") version "4.0.0-beta.7"
 }
 
 android {
@@ -63,8 +65,26 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.client.logging)
 
+    //apollo graphql
+    api("com.apollographql.apollo3:apollo-runtime:4.0.0-beta.7")
+    api("com.apollographql.apollo3:apollo-engine-ktor:4.0.0-beta.7")
+    api("com.apollographql.apollo3:apollo-rx3-support:4.0.0-beta.7")
+
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+}
+
+apollo {
+    service("service") {
+        packageName.set("com.example.graphql")
+        schemaFile.set(file("src/main/graphql/schema.graphqls"))
+        generateOptionalOperationVariables.set(false)
+    }
+}
+
+// Добавляем задачу для генерации кода Apollo перед компиляцией
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    dependsOn("generateApolloSources")
 }

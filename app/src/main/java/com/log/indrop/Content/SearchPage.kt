@@ -1,6 +1,7 @@
 package com.log.indrop.Content
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -45,15 +46,20 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.navigation.NavController
 import com.log.indrop.ViewModels.MessagesViewModel.MessagesEffect
 import com.log.indrop.ViewModels.Search.SearchEffect
+import com.log.network.ViewModels.MainViewModel
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun SearchPage(viewModel: SearchViewModel = koinViewModel(), navController: NavController) {
+fun SearchPage(viewModel: SearchViewModel = koinViewModel(), mainViewModel: MainViewModel = koinViewModel(), navController: NavController) {
     val state by viewModel.state.collectAsState()
     var query by remember { mutableStateOf("") }
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
+
+    var showChatNameInput by remember { mutableStateOf(false) }
+    var chatName by remember { mutableStateOf("") }
+
 
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
@@ -142,17 +148,41 @@ fun SearchPage(viewModel: SearchViewModel = koinViewModel(), navController: NavC
         }
 
         // ➕ Кнопка "Создать чат"
-        if (state.selectedUserIds.isNotEmpty()) {
-            Button(
-                onClick = {
-                    viewModel.processIntent(SearchIntent.CreateChatPressedIntent)
 
-                },
+
+        AnimatedVisibility(state.selectedUserIds.isNotEmpty()) {
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.primaryContainer)
                     .padding(16.dp)
             ) {
-                Text("Создать чат")
+                OutlinedTextField(
+                    value = chatName,
+                    onValueChange = { chatName = it; state.newChatTitle = chatName },
+                    label = { Text("Название чата") },
+                    modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.primaryContainer)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    TextButton(onClick = {
+                        showChatNameInput = false
+                        chatName = ""
+                    }) {
+                        Text("Отмена")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = {
+                        showChatNameInput = false
+                        viewModel.processIntent(SearchIntent.CreateChatPressedIntent(chatName, null, mainViewModel.myId.value!!.toLong())) // TODO: это колхоз потом испривитиь
+                        chatName = ""
+                    }) {
+                        Text("Создать")
+                    }
+                }
             }
         }
     }

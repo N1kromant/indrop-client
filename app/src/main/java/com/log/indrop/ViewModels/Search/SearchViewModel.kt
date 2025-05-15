@@ -30,8 +30,16 @@ class SearchViewModel(private val repo: SearchRepositoryImpl) : BaseViewModel<Se
                 updateState { it.copy(selectedUserIds = newSelection) }
             }
             is SearchIntent.CreateChatPressedIntent -> {
+
+                val newSelection = state.value.selectedUserIds.toMutableSet().apply {
+                    if (contains(intent.myId)) remove(intent.myId)
+                    else add(intent.myId)
+                }
+                updateState { it.copy(selectedUserIds = newSelection) }
+
                 val selected = state.value.selectedUserIds
-                repo.createChat(selected.toList()){ chatId ->
+
+                repo.createChat(title = intent.title, avatar = intent.icon, selected.toList()){ chatId ->
                     if (chatId != null) {
                         emitEffect(SearchEffect.NavigateToChatEffect(chatId))
                     }

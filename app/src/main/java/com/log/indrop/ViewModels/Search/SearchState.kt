@@ -9,6 +9,8 @@ data class SearchState(
     var recentUsers: List<UserData?> = emptyList(), //Можно брать из последних 3 чатов
     var allUsers: List<UserData?> = emptyList(),
 
-    val selectedUserIds: Set<Long> = emptySet(),
-    val searchText: String = ""
+    var newChatTitle: String = "ChatTitle",
+    var newChatIconUrl: String? = null,
+    var selectedUserIds: Set<Long> = emptySet(),
+    var searchText: String = ""
 ) : BaseState

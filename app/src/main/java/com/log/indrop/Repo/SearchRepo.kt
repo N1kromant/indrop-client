@@ -13,7 +13,7 @@ interface SearchRepository {
      * @return Flow с результатами поиска
      */
     suspend fun search(query: String, users: (List<UserData>) -> Unit)
-    suspend fun createChat(userIds: List<Long>, chatId: (Long?) -> Unit)
+    suspend fun createChat(title: String, avatar: String?, userIds: List<Long>, chatId: (Long?) -> Unit)
 
 }
 
@@ -36,12 +36,12 @@ class SearchRepositoryImpl(
         }
     }
 
-    override suspend fun createChat(userIds: List<Long>, chatId: (Long?) -> Unit) {
+    override suspend fun createChat(title: String, avatar: String?, userIds: List<Long>, chatId: (Long?) -> Unit) {
         try {
 
-            val id = searchApi.createNewChat(userIds)
-            return chatId(id)
-        } catch (e: Exception) {
+            val response = searchApi.createChat(title, avatar, userIds.map {it.toInt()})
+            return chatId(response.chatId?.toLong())
+                         } catch (e: Exception) {
             throw e
         }
     }

@@ -162,12 +162,10 @@ fun Screen(viewModel: MainViewModel = koinViewModel(), networkManager: NetworkMa
                             }
                             else {
                                 coroutineScope.launch {
-                                    val loginResponse = networkManager.loginTry(username, password)
-                                    if (loginResponse.data.authenticateUser.success) {
+                                    val loginResponse = networkManager.loginUser(login = username, password = password)
+                                    if (loginResponse.success) {
                                         viewModel.login()
-
-                                        //TODO myID
-                                        viewModel.setMyId("14881998")
+                                        viewModel.setMyId(loginResponse.userId.toString())
 
                                         navController.navigate("messages")
                                         Toast.makeText(context, "Успешная Авторизация!", Toast.LENGTH_SHORT).show()
@@ -184,14 +182,16 @@ fun Screen(viewModel: MainViewModel = koinViewModel(), networkManager: NetworkMa
                                          regName,
                                           ->
                             coroutineScope.launch {
-                                val registerResponse = networkManager.registerTry(regLogin,regPassword,regName)
-                                if (registerResponse.data.addUser.success)
+                                val registerResponse = networkManager.registerUser(login = regLogin,password = regPassword, firstName = regName)
+                                if (registerResponse)
                                 {
                                     Toast.makeText(context, "Успешная регистрация!", Toast.LENGTH_SHORT).show()
+                                    navController.navigate("auth")
                                 }
                                 else
                                 {
                                     Toast.makeText(context, "Регистрация не удалась!", Toast.LENGTH_SHORT).show()
+                                    navController.navigate("auth")
                                 }
                             }
                         }
