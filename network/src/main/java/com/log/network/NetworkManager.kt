@@ -66,17 +66,18 @@ class NetworkManager() :
         const val HOME = "192.168.1.88"
         const val COUNTRY = "192.168.2.152"
         const val OWN = "127.0.0.1"
-        const val SERVER = "api.1ndrop.ru"
+        const val SERVER1 = "api.1ndrop.ru"
+        const val SERVER2 = "212.67.13.82"
     }
-    private val select = HOST.SERVER
+    private val select = HOST.SERVER2
 
-    private val port = ":4444"
+    private val port = ":4000"
     private val url = select
     private val uri = "http://$select$port"
     private val graphqlUrl = "$uri/graphql"
 
-    val graphqlUrlTEST = "http://192.168.0.157:4000/graphql"
-    val graphqlUrlTESTws = "ws://192.168.0.157:4000/graphql"
+    val graphqlUrlTEST = "http://$select$port/graphql"
+    val graphqlUrlTESTws = "ws://$select$port/graphql"
 
 
 

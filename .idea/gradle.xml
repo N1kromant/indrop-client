@@ -6,7 +6,8 @@
       <GradleProjectSettings>
         <option name="testRunner" value="CHOOSE_PER_TEST" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="gradleJvm" value="corretto-17" />
+        <option name="gradleHome" value="$PROJECT_DIR$/../../../utils/Gradle/gradle-8.10" />
+        <option name="gradleJvm" value="corretto-17 (2)" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
@@ -15,7 +16,6 @@
             <option value="$PROJECT_DIR$/network" />
           </set>
         </option>
-        <option name="resolveExternalAnnotations" value="false" />
       </GradleProjectSettings>
     </option>
   </component>
