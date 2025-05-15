@@ -48,10 +48,12 @@ import com.log.indrop.ViewModels.MessagesViewModel.MessagesEffect
 import com.log.indrop.ViewModels.Search.SearchEffect
 import com.log.network.ViewModels.MainViewModel
 import kotlinx.coroutines.flow.collectLatest
+import org.koin.androidx.compose.get
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun SearchPage(viewModel: SearchViewModel = koinViewModel(), mainViewModel: MainViewModel = koinViewModel(), navController: NavController) {
+fun SearchPage(viewModel: SearchViewModel = koinInject<SearchViewModel>(), mainViewModel: MainViewModel = koinInject<MainViewModel>(), navController: NavController) {
     val state by viewModel.state.collectAsState()
     var query by remember { mutableStateOf("") }
     val context = LocalContext.current
@@ -76,6 +78,7 @@ fun SearchPage(viewModel: SearchViewModel = koinViewModel(), mainViewModel: Main
         }
     }
 
+    mainViewModel.hideNavBar()
     Column(modifier = Modifier.fillMaxSize()) {
 
         // 🔍 Поле поиска и кнопка
@@ -200,17 +203,23 @@ fun UserListItemWithCheckbox(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onCheckedChange(!checked) }
-
             .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(vertical = 12.dp) // Добавляем вертикальные отступы
+        // Или можно задать минимальную высоту
+        // .heightIn(min = 72.dp)
     ) {
         Checkbox(
             checked = checked,
             onCheckedChange = onCheckedChange
         )
         Spacer(modifier = Modifier.width(8.dp))
-        Column {
+        Column(
+            // Добавляем вертикальные отступы внутри колонки
+            modifier = Modifier.padding(vertical = 4.dp)
+        ) {
             Text(text = name)
-            Text(text = "@$login", style = MaterialTheme.typography.bodySmall)
+            Spacer(modifier = Modifier.height(4.dp)) // Добавляем отступ между текстами
+            Text(text = "@$login", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimary)
         }
     }
 }

@@ -24,15 +24,15 @@ class App : Application() {
 
         val appModule = module {
 
-            viewModel { MainViewModel() }
-            viewModel { NetworkViewModel() }
-            viewModel { SearchViewModel(get()) }
-            viewModel { MessagesViewModel() }
-
             single { NetworkManager() }
             single { NavigationHandlerImpl() }
             single<SearchApi> { SearchApiImpl(get()) }
             single { SearchRepositoryImpl(get<SearchApi>()) }
+
+            single { MainViewModel() }
+            single { NetworkViewModel() }
+            single { SearchViewModel(get()) }
+            single { MessagesViewModel() }
 
             // Создание нового экземпляра при каждом запросе
 //            factory { UseCase(get()) }
