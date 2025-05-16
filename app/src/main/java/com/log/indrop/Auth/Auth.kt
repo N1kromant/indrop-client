@@ -58,6 +58,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -685,6 +686,7 @@ fun CustomTextField(text: String, content: () -> Unit?) {
         ),
     )
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomTextField(text: String) {

@@ -19,6 +19,7 @@ class MainViewModel: ViewModel() {
 
     private val _currentChat = MutableStateFlow<ChatData?>(null)
     var currentChat = _currentChat.asStateFlow()
+        get() = _currentChat
 
     private val _myId = MutableStateFlow<String?>(null)
     var myId = _myId.asStateFlow()
@@ -62,7 +63,7 @@ class MainViewModel: ViewModel() {
             if (chat.messages.isEmpty()) {
                 OffsetDateTime.MIN
             } else {
-                chat.getLastMessage().dateTime
+                chat.getLastMessage()!!.dateTime
             }
         }
 
@@ -76,15 +77,9 @@ class MainViewModel: ViewModel() {
      * @param message Сообщение для добавления
      */
     fun addMessageCurrentChat(message: Message) {
-        val current = _currentChat.value ?: return
 
-        // Поскольку _currentChat теперь указывает на объект в списке чатов,
-        // мы можем напрямую изменять его свойства
-        current.messages = current.messages + message
+        _currentChat.value = _currentChat.value!!.copy(messages = _currentChat.value!!.messages + message)
 
-        // Уведомляем подписчиков об изменениях
-        _currentChat.value = current
-//        _chats.value = _chats.value // Триггерит обновление UI для подписчиков на _chats
         sortChatsByLatestMessage()
     }
 
@@ -106,20 +101,17 @@ class MainViewModel: ViewModel() {
         if (chatIndex == -1) {
             return false
         }
-
-        // Создаем новый список чатов с обновленным чатом
+        
         val updatedChats = currentChats.toMutableList()
-
-        // Получаем чат и обновляем его список сообщений
+        
         val chat = updatedChats[chatIndex]
         val updatedChat = chat.copy(messages = chat.messages + message)
-
-        // Заменяем старый чат на обновленный
+        
         updatedChats[chatIndex] = updatedChat
+        _chats.value = updatedChats
 
-        // Обновляем состояние списка чатов
-//        _chats.value = updatedChats
         sortChatsByLatestMessage()
+
         return true
     }
 
@@ -177,6 +169,18 @@ class MainViewModel: ViewModel() {
     // Метод для обновления списка чатов
     fun updateChatDataList(newList: List<ChatData>) {
         _chats.value = newList
+    }
+
+    fun makeFakeUserDataTrueAuthorId() {
+        val me = UserData(
+            myId.value?.toLong(),
+            "n1kromant",
+            "Роман",
+            "Николаев",
+            "ICON"
+        )
+
+        _myUserData.value = me
     }
 
     fun makeFakeUserData() {

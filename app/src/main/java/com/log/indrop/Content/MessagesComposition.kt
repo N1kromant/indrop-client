@@ -51,6 +51,7 @@ import java.time.OffsetDateTime
 @Composable
 fun MessagesPage(messagesViewModel: MessagesViewModel = koinViewModel(), chats: List<ChatData>, navController: NavController, onClickChat: (chatData: ChatData) -> Unit) {
 
+
     LaunchedEffect(messagesViewModel) {
         messagesViewModel.effect.collect { effect ->
             when (effect) {
@@ -62,6 +63,8 @@ fun MessagesPage(messagesViewModel: MessagesViewModel = koinViewModel(), chats: 
             }
         }
     }
+
+
 
     Column {
         Row (
@@ -151,8 +154,8 @@ fun ChatRow(data: ChatData, onClick: (chatData: ChatData) -> Unit) {
                     fontSize = 28.sp,
                 )
                 Row {
-                    Text(text = "${data.getLastMessage().author.firstName}: ")
-                    Text(text = data.getLastMessage().content.text ?: "Изображение")
+                    Text(text = "${data.getLastMessage()?.author?.firstName}: ")
+                    Text(text = data.getLastMessage()?.content?.text ?: "")
                 }
             }
             Column(
@@ -162,7 +165,11 @@ fun ChatRow(data: ChatData, onClick: (chatData: ChatData) -> Unit) {
                     modifier = Modifier
                         .weight(0.1f)
                         .padding(8.dp),
-                    text = "${Duration.between(data.getLastMessage().dateTime, OffsetDateTime.now()).toMinutes()}м",
+                    text = if (data.getLastMessage()?.dateTime != null) {
+                        "${Duration.between(data.getLastMessage()?.dateTime, OffsetDateTime.now()).toMinutes()}м"
+                    } else {
+                        "- м"  // или любой другой текст по умолчанию
+                    },
                     fontSize = 18.sp,
                 )
             }

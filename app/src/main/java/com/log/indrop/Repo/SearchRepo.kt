@@ -1,5 +1,6 @@
 package com.log.indrop.Repo
 
+import com.log.data.ChatData
 import com.log.data.UserData
 import com.log.indrop.api.SearchApi
 
@@ -14,6 +15,7 @@ interface SearchRepository {
      */
     suspend fun search(query: String, users: (List<UserData>) -> Unit)
     suspend fun createChat(title: String, avatar: String?, userIds: List<Long>, chatId: (Long?) -> Unit)
+    suspend fun getChats(userId: Long, chatData: (List<ChatData>) -> Unit)
 
 }
 
@@ -46,6 +48,14 @@ class SearchRepositoryImpl(
         }
     }
 
+    override suspend fun getChats(userId: Long, chatData: (List<ChatData>) -> Unit) {
+
+        try {
+            return chatData(searchApi.getChats(userId.toInt()))
+        } catch (e: Exception) {
+            throw e
+        }
+    }
 
 
 }

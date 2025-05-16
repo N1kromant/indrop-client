@@ -2,14 +2,19 @@ package com.log.indrop.api
 
 import com.apollographql.apollo3.ApolloClient
 import com.log.data.UserData
+import com.log.data.ChatData
+import com.log.data.Message
+import com.log.data.Content
 
 import com.example.graphql.*
 import com.log.network.NetworkManager
+import java.time.OffsetDateTime
 
 
 interface SearchApi {
     suspend fun searchUsers(value: String): List<UserData>
     suspend fun createChat(title: String, avatar: String?, memberIds: List<Int>): NetworkManager.ChatCreationResult
+    suspend fun getChats(userId: Int): List<ChatData>
 }
 
 class SearchApiImpl(_networkManager: NetworkManager): SearchApi {
@@ -18,6 +23,7 @@ class SearchApiImpl(_networkManager: NetworkManager): SearchApi {
     override suspend fun searchUsers(value: String): List<UserData> {
 
         val client = networkManager.apolloClient
+
         return try {
             val response = client.query(SearchUsersQuery(value)).execute()
 
@@ -74,6 +80,63 @@ class SearchApiImpl(_networkManager: NetworkManager): SearchApi {
         }
     }
 
+    override suspend fun getChats(userId: Int): List<ChatData> {
+        val client = networkManager.apolloClient
+        return try {
+            val response = client.query(GetChatsQuery(userId = userId.toString())).execute()
+            if (response.hasErrors()) {
+                emptyList()
+            } else {
+                mapChats(response.data)
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+
+    fun mapChats(response: GetChatsQuery.Data?): List<ChatData> {
+        if (response == null || response.chats == null) return emptyList()
+
+        return response.chats.mapNotNull { chat ->
+            val messages = chat.messages?.mapNotNull { message ->
+                try {
+                    Message(
+                        messageId = message.messageId.toLongOrNull(),
+                        author = UserData(
+                            authorId = message.author.authorId.toLongOrNull(),
+                            login = message.author.login,
+                            firstName = message.author.firstName,
+                            lastName = message.author.lastName,
+                            icon = message.author.icon
+                        ),
+                        dateTime = OffsetDateTime.parse(message.dateTime),
+                        content = Content(
+                            text = message.content.text,
+                            images = message.content.images
+                        ),
+                        isReplyTo = message.isReplyTo?.toLongOrNull()
+                    )
+                } catch (e: Exception) {
+                    null
+                }
+            } ?: emptyList()
+
+            try {
+                ChatData(
+                    chatId = chat.chatId.toLong(),
+                    title = chat.title,
+                    avatar = chat.avatar,
+                    members = chat.members.map { it }.toMutableList() ?: mutableListOf(),
+                    messages = messages
+                )
+            } catch (e: Exception) {
+                null
+            }
+        }
+    }
+
+
 }
 
 class SearchApiTestImpl(): SearchApi {
@@ -99,4 +162,9 @@ class SearchApiTestImpl(): SearchApi {
     override suspend fun createChat(title: String, avatar: String?, memberIds: List<Int>): NetworkManager.ChatCreationResult {
         return NetworkManager.ChatCreationResult(success = true, chatId = 69)
     }
+
+    override suspend fun getChats(userId: Int): List<ChatData> {
+        return listOf()
+    }
+
 }

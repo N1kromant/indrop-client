@@ -43,6 +43,7 @@ import com.apollographql.apollo3.network.http.DefaultHttpEngine
 import com.apollographql.apollo3.network.ws.GraphQLWsProtocol
 import com.apollographql.apollo3.network.ws.WebSocketNetworkTransport
 import com.example.graphql.*
+import com.log.data.Content
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import java.time.OffsetDateTime
@@ -59,6 +60,8 @@ class NetworkManager() :
     private lateinit var me: UserData
 //    private val HOST: String = "192.168.1.88"
     public val viewModel: NetworkViewModel = NetworkViewModel() //FIXME
+
+
     private lateinit var inputObserver: Observer<String>
     private lateinit var outputObserver: Observer<String>
 
@@ -75,8 +78,8 @@ class NetworkManager() :
     private val uri = "http://$select$port"
     private val graphqlUrl = "$uri/graphql"
 
-    val graphqlUrlTEST = "http://192.168.0.157:4000/graphql"
-    val graphqlUrlTESTws = "ws://192.168.0.157:4000/graphql"
+    val graphqlUrlTEST = "http://212.67.13.82:4000/graphql"
+    val graphqlUrlTESTws = "ws://212.67.13.82:4000/graphql"
 
 
 
@@ -201,6 +204,102 @@ class NetworkManager() :
             return loginResponse(success = false, token = null, userId = null)
         }
     }
+
+    suspend fun getChats(userId: Int): List<ChatData> {
+        val client = apolloClient
+        return try {
+            val response = client.query(GetChatsQuery(userId = userId.toString())).execute()
+            if (response.hasErrors()) {
+                emptyList()
+            } else {
+                mapChats(response.data)
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+
+    fun mapChats(response: GetChatsQuery.Data?): List<ChatData> {
+        if (response == null || response.chats == null) return emptyList()
+
+        return response.chats.mapNotNull { chat ->
+            val messages = chat.messages?.mapNotNull { message ->
+                try {
+                    Message(
+                        messageId = message.messageId.toLongOrNull(),
+                        author = UserData(
+                            authorId = message.author.authorId.toLongOrNull(),
+                            login = message.author.login,
+                            firstName = message.author.firstName,
+                            lastName = message.author.lastName,
+                            icon = message.author.icon
+                        ),
+                        dateTime = OffsetDateTime.parse(message.dateTime),
+                        content = Content(
+                            text = message.content.text,
+                            images = message.content.images
+                        ),
+                        isReplyTo = message.isReplyTo?.toLongOrNull()
+                    )
+                } catch (e: Exception) {
+                    null
+                }
+            } ?: emptyList()
+
+            try {
+                ChatData(
+                    chatId = chat.chatId.toLong(),
+                    title = chat.title,
+                    avatar = chat.avatar,
+                    members = chat.members.map { it }.toMutableList() ?: mutableListOf(),
+                    messages = messages
+                )
+            } catch (e: Exception) {
+                null
+            }
+        }
+    }
+
+    suspend fun sendMessage(
+        chatId: Int,
+        authorId: Int,
+        text: String,
+        images: String? = null,
+        isReplyTo: Int? = null
+    ): Boolean {
+        val client = apolloClient
+        try {
+            val mutation = SendMessageMutation(
+                chatId = chatId.toString(),
+                authorId = authorId.toString(),
+                text = text,
+                images = images,
+                isReplyTo = isReplyTo?.toString()
+            )
+
+            val response = client.mutation(mutation).execute()
+            val data = response.data
+
+            if (response.hasErrors()) {
+                println("Ошибки: ${response.errors?.joinToString { "${it.message} (${it.extensions})" }}")
+                return false
+            }
+
+            if (data == null) {
+                println("Ответ сервера не содержит данных (data == null)")
+                return false
+            }
+
+            return data.sendMessage.success
+        } catch (e: Exception) {
+            e.printStackTrace()
+            println("Исключение при отправке сообщения: ${e.message}")
+            return false
+        }
+    }
+
+
 
 
 

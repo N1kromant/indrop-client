@@ -56,6 +56,17 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.compose.koinInject
 import androidx.lifecycle.flowWithLifecycle
+import com.example.graphql.MessageAddedSubscription
+import com.log.data.Content
+import com.log.data.OffsetDateTimeSerializer
+import com.log.data.UserData
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import kotlin.coroutines.cancellation.CancellationException
+
 
 
 class Main: AppCompatActivity() {
@@ -64,6 +75,8 @@ class Main: AppCompatActivity() {
 
     private val networkManager: NetworkManager by inject()
     private lateinit var pickMedia: ActivityResultLauncher<PickVisualMediaRequest>
+
+    var subscriptionJob: Job? = null
 
     @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -97,9 +110,33 @@ class Main: AppCompatActivity() {
                             }
                             "sendMessage" -> {
                                 coroutine.launch {
-                                    networkViewModel.newOutputMessage(metaData!!)
-                                    mainViewModel.addMessageCurrentChat(Json.decodeFromString<Message>(metaData))
+                                    val message = Json.decodeFromString<Message>(metaData!!)
+                                    val sucsess = networkManager.sendMessage(
+                                        chatId = mainViewModel.currentChat.value!!.chatId.toInt(),
+                                        authorId = message.author.authorId!!.toInt(),
+                                        text = message.content.text!!,
+                                        images = null,
+                                        isReplyTo = null
+                                        )
+                                    Log.i("info", "Отправка сообщения: $sucsess")
+
+                                    networkViewModel.newOutputMessage(metaData) // fixme НАХУЯ НЕ ИМЕЮ ПОНЯТИЯ
                                 }
+                            }
+                            "startSub" -> {
+                                // Останавливаем предыдущую подписку, если была
+                                subscriptionJob?.cancel()
+
+                                // Запускаем новую
+                                subscriptionJob = coroutine.launch {
+                                    startMessageAddedSubscriptionOneChat(mainViewModel.currentChat.value!!.chatId.toString())
+                                }
+                                Log.i("info","Подписка начата")
+                            }
+                            "cancelSub" -> {
+                                Log.i("info","Подписка отменена через явный вызов cancelSub")
+                                subscriptionJob?.cancel()
+                                subscriptionJob = null
                             }
                         }
                     }
@@ -116,7 +153,43 @@ class Main: AppCompatActivity() {
         }
     }
 
+
+    private suspend fun startMessageAddedSubscriptionOneChat(chatId: String) {
+        val client = networkManager.apolloClient
+        println("Активация подписки на  сообщения для чата $chatId")
+
+        try {
+            val subscription = MessageAddedSubscription(chatId = chatId)
+
+            client.subscription(subscription)
+                .toFlow()
+                .collect { response ->
+                    if (response.hasErrors()) {
+                        println("Ошибка в подписке: ${response.errors}")
+                    } else if (response.data != null) {
+                        val message = response.data!!.messageAdded
+
+                        val success = mainViewModel.addMessageCurrentChat(
+                            Message(message.messageId.toLong(),
+                                author = UserData(message.author.authorId.toLong(), message.author.login, message.author.firstName, message.author.lastName, message.author.icon),
+                                dateTime = Instant.ofEpochMilli(message.dateTime.toLong()).atOffset(
+                                    ZoneOffset.UTC) ,
+                                content = Content(message.content.text, message.content.images),
+                                isReplyTo = message.isReplyTo?.toLong()
+                                ))
+
+                    }
+                }
+        } catch (e: CancellationException) {
+            println("Предыдущая подписка отменена из-за запуска новой")
+        } catch (e: Exception) {
+            println("Ошибка в подписке: ${e.message}")
+            e.printStackTrace()
+        }
+    }
 }
+
+
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
@@ -166,6 +239,7 @@ fun Screen(viewModel: MainViewModel = koinViewModel(), networkManager: NetworkMa
                                     if (loginResponse.success) {
                                         viewModel.login()
                                         viewModel.setMyId(loginResponse.userId.toString())
+                                        viewModel.makeFakeUserDataTrueAuthorId()
 
                                         navController.navigate("messages")
                                         Toast.makeText(context, "Успешная Авторизация!", Toast.LENGTH_SHORT).show()
@@ -202,6 +276,7 @@ fun Screen(viewModel: MainViewModel = koinViewModel(), networkManager: NetworkMa
                 composable(route = "messages") {
                     coroutineScope.launch {
                         viewModel.showNavBar()
+                        viewModel.updateChatDataList( networkManager.getChats(viewModel.myId.value!!.toInt()) ) //TODO: это колхоз потом испривитиь
                     }
                     MessagesPage(chats = viewModel.chats.collectAsState().value, navController = navController) {
                         try {
@@ -234,6 +309,8 @@ fun Screen(viewModel: MainViewModel = koinViewModel(), networkManager: NetworkMa
                                 popUpTo("messages")
                             }
                             "sendMessage" -> onClick("sendMessage", metaData)
+                            "startSubscription" -> onClick("startSub", metaData)
+                            "cancelSubscription" -> onClick("cancelSub", metaData)
                         }
                     }
 //                    viewModel.chats.value.forEach {

@@ -59,8 +59,8 @@ data class ChatData(
     val title: String,
     var messages: List<Message>,
 ) {
-    fun getLastMessage(): Message {
-        return messages.last()
+    fun getLastMessage(): Message? {
+        return messages.lastOrNull()
     }
 }
 

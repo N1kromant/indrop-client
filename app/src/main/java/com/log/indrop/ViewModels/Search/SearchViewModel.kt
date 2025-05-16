@@ -32,12 +32,13 @@ class SearchViewModel(private val repo: SearchRepositoryImpl) : BaseViewModel<Se
             is SearchIntent.CreateChatPressedIntent -> {
 
                 val newSelection = state.value.selectedUserIds.toMutableSet().apply {
-                    if (contains(intent.myId)) remove(intent.myId)
-                    else add(intent.myId)
+                    add(intent.myId)
                 }
                 updateState { it.copy(selectedUserIds = newSelection) }
 
                 val selected = state.value.selectedUserIds
+                state.value.selectedUserIds = emptySet()
+                state.value.allUsers = emptyList()
 
                 repo.createChat(title = intent.title, avatar = intent.icon, selected.toList()){ chatId ->
                     if (chatId != null) {
@@ -48,8 +49,9 @@ class SearchViewModel(private val repo: SearchRepositoryImpl) : BaseViewModel<Se
                     }
 
                 }
-
             }
+
+
         }
     }
 

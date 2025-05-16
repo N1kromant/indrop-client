@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -29,6 +30,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,6 +59,17 @@ import java.time.OffsetDateTime
 
 @Composable
 fun ChatPage(data: ChatData, myId: String, me: UserData, onClick: (task: String, metaData: String?) -> Unit) {
+    LaunchedEffect(Unit) {
+        onClick("startSubscription", null)
+    }
+    DisposableEffect(Unit) {
+        println("DisposableEffect initialized") // or use Log.d
+        onDispose {
+            println("onDispose being called") // or use Log.d
+            onClick("cancelSubscription", null)
+        }
+    }
+
     Column {
         ChatHeader(data) { task, id ->  onClick(task, id) }
         ChatContent(data, myId, this)
@@ -96,13 +110,23 @@ fun ChatHeader(data: ChatData, onClick: (task: String, id: String?) -> Unit) {
 
 @Composable
 fun ChatContent(chat: ChatData, myId: String, columnScope: ColumnScope) {
+    val listState = rememberLazyListState()
+    val messages = chat.messages
+
+    // Автоскролл при добавлении новых сообщений
+    LaunchedEffect(messages.size) {
+        if (messages.isNotEmpty()) {
+            listState.animateScrollToItem(messages.lastIndex)
+        }
+    }
+
     columnScope.apply {
-        LazyColumn (
-            Modifier.weight(1f),
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            state = listState,
             verticalArrangement = Arrangement.Bottom
         ) {
-
-            items(chat.messages) {
+            items(messages) {
                 Message(it, it.author.login == myId)
                 Spacer(Modifier.size(4.dp))
             }
@@ -237,9 +261,9 @@ fun ChatPagePreview() {
         messages = messages
     )
 
-   InkTheme {
-       ChatPage(data, "n1kromant", me) { _, _ ->
-
-       }
-   }
+//   InkTheme {
+//       ChatPage(data, "n1kromant", me) { _, _ ->
+//
+//       }
+//   }
 }
