@@ -46,10 +46,11 @@ import com.log.indrop.ViewModels.Search.SearchViewModel
 import com.log.indrop.api.SearchApiImpl
 import com.log.indrop.api.SearchApiTestImpl
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import java.time.Duration
 import java.time.OffsetDateTime
 @Composable
-fun MessagesPage(messagesViewModel: MessagesViewModel = koinViewModel(), chats: List<ChatData>, navController: NavController, onClickChat: (chatData: ChatData) -> Unit) {
+fun MessagesPage(messagesViewModel: MessagesViewModel = koinInject<MessagesViewModel>(), chats: List<ChatData>, navController: NavController, onClickChat: (chatData: ChatData) -> Unit) {
 
 
     LaunchedEffect(messagesViewModel) {

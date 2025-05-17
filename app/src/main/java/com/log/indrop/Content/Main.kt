@@ -70,8 +70,8 @@ import kotlin.coroutines.cancellation.CancellationException
 
 
 class Main: AppCompatActivity() {
-    private val mainViewModel: MainViewModel by viewModel()
-    private val networkViewModel: NetworkViewModel by viewModel()
+    private val mainViewModel: MainViewModel by inject()
+    private val networkViewModel: NetworkViewModel by inject()
 
     private val networkManager: NetworkManager by inject()
     private lateinit var pickMedia: ActivityResultLauncher<PickVisualMediaRequest>
@@ -193,7 +193,7 @@ class Main: AppCompatActivity() {
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun Screen(viewModel: MainViewModel = koinViewModel(), networkManager: NetworkManager = koinInject(), messagesViewModel: MessagesViewModel = koinViewModel(),  navigationHandler: NavigationHandlerImpl = koinInject(), onClick: (button: String, metaData: String?) -> Unit) {
+fun Screen(viewModel: MainViewModel = koinInject(), networkManager: NetworkManager = koinInject(), messagesViewModel: MessagesViewModel = koinInject(),  navigationHandler: NavigationHandlerImpl = koinInject(), onClick: (button: String, metaData: String?) -> Unit) {
     val navController = rememberNavController()
     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
     val isHideNavBar by viewModel.isHideNavBar.collectAsState()
