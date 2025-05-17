@@ -239,7 +239,7 @@ fun Screen(viewModel: MainViewModel = koinInject(), networkManager: NetworkManag
                                     if (loginResponse.success) {
                                         viewModel.login()
                                         viewModel.setMyId(loginResponse.userId.toString())
-                                        viewModel.makeFakeUserDataTrueAuthorId()
+                                        viewModel.makeTrueUserData(loginResponse.UserData!!)
 
                                         navController.navigate("messages")
                                         Toast.makeText(context, "Успешная Авторизация!", Toast.LENGTH_SHORT).show()

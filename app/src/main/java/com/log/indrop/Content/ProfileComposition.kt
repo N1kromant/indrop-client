@@ -6,12 +6,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,9 +25,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.log.data.Content
 import com.log.data.PostData
 import com.log.data.UserData
@@ -46,7 +50,7 @@ fun ProfilePage(postsData: MutableStateFlow<List<PostData>>, user: UserData){
 
             LazyColumn {
                 item {
-                    ProfileHeader(user.firstName, user.lastName, user.login)
+                    ProfileHeader(user.firstName, user.lastName, user.login, user.icon)
                     Row(
                         Modifier
                             .fillMaxWidth()
@@ -123,9 +127,9 @@ fun ProfilePage(postsData: MutableStateFlow<List<PostData>>, user: UserData){
 
 
 @Composable
-fun ProfileHeader(firstName: String, lastName: String, authorId: String) {
+fun ProfileHeader(firstName: String, lastName: String, authorId: String, iconUrl: String?) {
     InkTheme {
-        Box() {
+        Box {
             Column {
                 TopBar(height = TOP_BAR_HEIGHT)
 
@@ -134,25 +138,23 @@ fun ProfileHeader(firstName: String, lastName: String, authorId: String) {
                         .background(MaterialTheme.colorScheme.primaryContainer)
                         .fillMaxWidth()
                         .height(TOP_BAR_HEIGHT.dp)
-                        .clip(
-                            shape = RoundedCornerShape(20.dp, 20.dp)
-                        )
+                        .clip(RoundedCornerShape(20.dp, 20.dp))
                 )
             }
 
-            Column (
-                modifier = Modifier
-                    .align(Alignment.Center)
-
+            Column(
+                modifier = Modifier.align(Alignment.Center)
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.profile),
-                    contentDescription = "avatar",
+                myUserAvatar(
+                    iconUrl = iconUrl,
+                    userName = firstName,
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .size(TOP_BAR_HEIGHT.dp)
                 )
-                Row {
+                Row(
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                ) {
                     Text(
                         text = "$firstName ",
                         fontSize = 36.sp
@@ -165,10 +167,39 @@ fun ProfileHeader(firstName: String, lastName: String, authorId: String) {
                 Text(
                     text = authorId,
                     fontSize = 18.sp,
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun myUserAvatar(iconUrl: String?, userName: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .background(
+                color = MaterialTheme.colorScheme.surfaceDim.copy(alpha = 0.3f),
+                shape = RoundedCornerShape(50) // подгон под аватар
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        if (iconUrl != null && iconUrl != "ICON") {
+            AsyncImage(
+                model = iconUrl,
+                contentDescription = "Avatar",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(CircleShape)
+            )
+        } else {
+            val initial = userName.firstOrNull()?.toString() ?: "?"
+            Text(
+                text = initial,
+                fontSize = 48.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
         }
     }
 }

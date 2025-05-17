@@ -96,6 +96,13 @@ mutation AuthenticateUser($login: String!, $password: String!) {
     success
     token
     userId
+    UserData {
+      authorId
+      login
+      firstName
+      lastName
+      icon
+    }
   }
 }
 

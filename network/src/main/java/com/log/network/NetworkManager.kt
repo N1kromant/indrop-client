@@ -153,7 +153,8 @@ class NetworkManager() :
     data class loginResponse(
         val success: Boolean,
         val token: String?,
-        val userId: Long?
+        val userId: Long?,
+        val UserData: UserData?
     )
 
     // Функция для регистрации нового пользователя
@@ -192,17 +193,29 @@ class NetworkManager() :
 
             if (response.hasErrors()) {
                 println("Ошибка при авторизации: ${response.errors}")
-                return loginResponse(success = false, token = null, userId = null)
+                return loginResponse(success = false, token = null, userId = null, UserData = null)
             }
             return if(response.data?.authenticateUser?.success != null) {
                 if(response.data?.authenticateUser?.success == true) {
-                    loginResponse(success = true, token = response.data?.authenticateUser?.token, userId = response.data?.authenticateUser?.userId?.toLong())
-                } else loginResponse(success = false, token = null, userId = null)
-            } else loginResponse(success = false, token = null, userId = null)
+                    loginResponse(success = true, token = response.data?.authenticateUser?.token, userId = response.data?.authenticateUser?.userId?.toLong(),
+                        UserData = UserData(authorId = response.data?.authenticateUser?.UserData!!.authorId.toLong(),
+                        login = response.data?.authenticateUser?.UserData!!.login,
+                        firstName = response.data?.authenticateUser?.UserData!!.firstName,
+                        lastName = response.data?.authenticateUser?.UserData!!.lastName,
+                        icon = response.data?.authenticateUser?.UserData!!.icon,
+                            ))
+
+                } else
+                {
+                    loginResponse(success = false, token = null, userId = null, UserData = null)
+                }
+            } else{
+                loginResponse(success = false, token = null, userId = null, UserData = null)
+            }
 
         } catch (e: Exception) {
             println("Исключение при авторизации: ${e.message}")
-            return loginResponse(success = false, token = null, userId = null)
+            return loginResponse(success = false, token = null, userId = null, UserData = null)
         }
     }
 

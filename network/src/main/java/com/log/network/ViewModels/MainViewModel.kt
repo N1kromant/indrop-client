@@ -171,13 +171,13 @@ class MainViewModel: ViewModel() {
         _chats.value = newList
     }
 
-    fun makeFakeUserDataTrueAuthorId() {
+    fun makeTrueUserData(UserData: UserData) {
         val me = UserData(
-            myId.value?.toLong(),
-            "n1kromant",
-            "Роман",
-            "Николаев",
-            "ICON"
+            UserData.authorId,
+            UserData.login,
+            UserData.firstName,
+            UserData.lastName,
+            UserData.icon
         )
 
         _myUserData.value = me
