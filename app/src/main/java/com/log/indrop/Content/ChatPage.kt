@@ -56,6 +56,8 @@ import com.log.indrop.R
 import com.log.indrop.ui.theme2.InkTheme
 import kotlinx.coroutines.launch
 import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun ChatPage(data: ChatData, myId: String, me: UserData, onClick: (task: String, metaData: String?) -> Unit) {
@@ -157,7 +159,10 @@ fun Message(message: Message, isMyMessage: Boolean) {
                 Row(
 //                    horizontalArrangement = Arrangement.End
                 ) {
-                    Text(text = message.dateTime.formatOffsetDateTime(), fontSize = 12.sp, fontWeight = FontWeight.Light)
+
+                    val zonedDateTime = message.dateTime.atZoneSameInstant(ZoneId.systemDefault())
+                    val formatted = zonedDateTime.format(DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy"))
+                    Text(text = formatted, fontSize = 12.sp, fontWeight = FontWeight.Light)
                 }
                 Spacer(modifier = Modifier.size(4.dp))
             }
