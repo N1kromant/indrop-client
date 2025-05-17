@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -58,6 +59,14 @@ import kotlinx.coroutines.launch
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
+import java.time.ZonedDateTime
+import coil.compose.AsyncImage
 
 @Composable
 fun ChatPage(data: ChatData, myId: String, me: UserData, onClick: (task: String, metaData: String?) -> Unit) {
@@ -124,49 +133,125 @@ fun ChatContent(chat: ChatData, myId: String, columnScope: ColumnScope) {
 
     columnScope.apply {
         LazyColumn(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
             state = listState,
             verticalArrangement = Arrangement.Bottom
         ) {
-            items(messages) {
-                Message(it, it.author.login == myId)
-                Spacer(Modifier.size(4.dp))
+            items(messages) { message ->
+                Message(message, message.author.authorId == myId.toLong())
             }
         }
     }
 }
 
+
 @Composable
 fun Message(message: Message, isMyMessage: Boolean) {
-    val shape = RoundedCornerShape(16.dp) // Форма с скругленными углами (здесь радиус - 8.dp)
+    val shape = RoundedCornerShape(16.dp)
+    val backgroundColor = MaterialTheme.colorScheme.primaryContainer
 
     Row(
         Modifier
-//                .background(MaterialTheme.colorScheme.primaryContainer, shape)
-            .fillMaxWidth(),
-        horizontalArrangement = (if (isMyMessage) {Arrangement.End} else {Arrangement.Start}),
-        verticalAlignment = Alignment.CenterVertically,
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        horizontalArrangement = if (isMyMessage) Arrangement.End else Arrangement.Start,
+    ) {
+        // Аватар пользователя для чужих сообщений (слева)
+        if (!isMyMessage) {
+            UserAvatar(message.author.icon, message.author.firstName)
+            Spacer(modifier = Modifier.size(8.dp))
+        }
 
+        Column(
+            // Ограничиваем ширину сообщения до 75% экрана
+            modifier = Modifier.widthIn(max = 280.dp)
         ) {
-        Row(
-            Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer, shape)
-        ) {
-            Spacer(modifier = Modifier.size(12.dp))
-            Column {
-                Spacer(modifier = Modifier.size(8.dp))
-                Text(text = message.content.text ?: "", fontSize = 20.sp)
+            // Имя автора сообщения с соответствующим выравниванием
+            Text(
+                text = message.author.firstName,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = if (isMyMessage) TextAlign.End else TextAlign.Start
+            )
+
+            // Содержимое сообщения
+            Column(
+                Modifier
+                    .background(backgroundColor, shape)
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+            ) {
+                // Текст сообщения
+                Text(
+                    text = message.content.text ?: "",
+                    fontSize = 16.sp  // Уменьшенный размер текста (было 20.sp)
+                )
+
+                // Время и логин отправителя
                 Row(
-//                    horizontalArrangement = Arrangement.End
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = if (isMyMessage) Arrangement.Start else Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-
                     val zonedDateTime = message.dateTime.atZoneSameInstant(ZoneId.systemDefault())
-                    val formatted = zonedDateTime.format(DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy"))
-                    Text(text = formatted, fontSize = 12.sp, fontWeight = FontWeight.Light)
+                    val formatted = formatMessageDateTime(zonedDateTime)
+                    Text(
+                        text = formatted,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Light,
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                    )
+                    Spacer(modifier = Modifier.size(4.dp))
+                    Text(
+                        text = "@${message.author.login}",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Light,
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                    )
                 }
-                Spacer(modifier = Modifier.size(4.dp))
             }
-            Spacer(modifier = Modifier.size(12.dp))
+        }
+
+        // Аватар пользователя для своих сообщений (справа)
+        if (isMyMessage) {
+            Spacer(modifier = Modifier.size(8.dp))
+            UserAvatar(message.author.icon, message.author.firstName)
+        }
+    }
+}
+
+// Обновленный компонент для отображения аватара пользователя
+@Composable
+fun UserAvatar(iconUrl: String?, userName: String) {
+    Box(
+        modifier = Modifier
+            .size(36.dp)
+            .background(
+                color = MaterialTheme.colorScheme.surfaceDim.copy(alpha = 0.3f),
+                shape = RoundedCornerShape(18.dp)
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        if (iconUrl != null && iconUrl != "ICON") {
+            println(iconUrl)
+            AsyncImage(
+                model = iconUrl,
+                contentDescription = "Avatar",
+                modifier = Modifier
+                    .clip(CircleShape) // делает форму круглой
+            )
+        } else {
+            // Если URL изображения отсутствует - показываем первую букву имени
+            val initial = userName.firstOrNull()?.toString() ?: "?"
+            Text(
+                text = initial,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
         }
     }
 }
@@ -176,44 +261,109 @@ fun Message(message: Message, isMyMessage: Boolean) {
 fun ChatFooter(me: UserData, onClick: (task: String, metaData: String?) -> Unit) {
     var text by remember { mutableStateOf("") }
     val textFieldColors = TextFieldDefaults.textFieldColors(
-        containerColor = MaterialTheme.colorScheme.primaryContainer
+        containerColor = MaterialTheme.colorScheme.primaryContainer,
+        cursorColor = MaterialTheme.colorScheme.primary,
+        focusedIndicatorColor = Color.Transparent,
+        unfocusedIndicatorColor = Color.Transparent
     )
+
     fun sendMessage() {
-        val message = Message(
-            messageId = null,
-            author = me,
-            content = Content(text, null),
-            dateTime = OffsetDateTime.now(),
-            isReplyTo = null
-        )
-        onClick("sendMessage", message.toJson())
-        text = ""
+        if (text.isNotBlank()) {
+            val message = Message(
+                messageId = null,
+                author = me,
+                content = Content(text.trim(), null),
+                dateTime = OffsetDateTime.now(),
+                isReplyTo = null
+            )
+            onClick("sendMessage", message.toJson())
+            text = ""
+        }
     }
+
     Row(
         Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primaryContainer), verticalAlignment = Alignment.Bottom) {
-        IconButton(onClick = { /*TODO*/ }, Modifier.weight(0.1f)) {
-            Icon(painter = painterResource(id = R.drawable.paperclip), contentDescription = "Clip", tint = MaterialTheme.colorScheme.onPrimary)
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Кнопка для добавления вложений
+        IconButton(
+            onClick = { onClick("openAttachmentPicker", null) },
+            modifier = Modifier.size(40.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.paperclip),
+                contentDescription = "Прикрепить файл",
+                tint = MaterialTheme.colorScheme.onPrimaryContainer
+            )
         }
+
+        // Поле ввода текста
         TextField(
             value = text,
             onValueChange = { newText -> text = newText },
-            label = { Text("Сообщение") },
+            placeholder = { Text("Сообщение") },
             colors = textFieldColors,
-            modifier = Modifier.weight(0.8f),
+            modifier = Modifier
+                .weight(1f)
+                .height(56.dp),
             keyboardOptions = KeyboardOptions.Default.copy(
-                imeAction = ImeAction.Default,
+                imeAction = ImeAction.Send,
                 capitalization = KeyboardCapitalization.Sentences
             ),
             keyboardActions = KeyboardActions(
                 onSend = { sendMessage() }
-            )
+            ),
+            shape = RoundedCornerShape(24.dp),
+            singleLine = false,
+            maxLines = 4
         )
+
+        // Кнопка отправки сообщения
         IconButton(
             onClick = { sendMessage() },
-            Modifier.weight(0.1f)) {
-            Icon(painter = painterResource(id = R.drawable.send), contentDescription = "Send", tint = MaterialTheme.colorScheme.onPrimary)
+            modifier = Modifier.size(40.dp),
+            enabled = text.isNotBlank()
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.send),
+                contentDescription = "Отправить",
+                tint = if (text.isNotBlank())
+                    MaterialTheme.colorScheme.primary
+                else
+                    MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
+            )
+        }
+    }
+}
+
+fun formatMessageDateTime(messageDateTime: ZonedDateTime): String {
+    val now = ZonedDateTime.now()
+    val today = now.toLocalDate()
+    val yesterday = today.minusDays(1)
+    val messageDate = messageDateTime.toLocalDate()
+
+    return when {
+        // Если сообщение сегодня - показываем только время
+        messageDate.isEqual(today) -> {
+            messageDateTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+        }
+
+        // Если сообщение вчера - пишем "Вчера" и время
+        messageDate.isEqual(yesterday) -> {
+            "Вчера, " + messageDateTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+        }
+
+        // Если в этом году - день, месяц и время
+        messageDate.year == today.year -> {
+            messageDateTime.format(DateTimeFormatter.ofPattern("d MMM, HH:mm"))
+        }
+
+        // Если другой год - полная дата со временем
+        else -> {
+            messageDateTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm"))
         }
     }
 }
