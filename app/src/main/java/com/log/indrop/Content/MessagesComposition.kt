@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,6 +50,10 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import java.time.Duration
 import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
 @Composable
 fun MessagesPage(messagesViewModel: MessagesViewModel = koinInject<MessagesViewModel>(), chats: List<ChatData>, navController: NavController, onClickChat: (chatData: ChatData) -> Unit) {
 
@@ -153,6 +158,8 @@ fun ChatRow(data: ChatData, onClick: (chatData: ChatData) -> Unit) {
                 Text(
                     text = data.title,
                     fontSize = 28.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Row {
                     Text(text = "${data.getLastMessage()?.author?.firstName}: ")
@@ -167,9 +174,10 @@ fun ChatRow(data: ChatData, onClick: (chatData: ChatData) -> Unit) {
                         .weight(0.1f)
                         .padding(8.dp),
                     text = if (data.getLastMessage()?.dateTime != null) {
-                        "${Duration.between(data.getLastMessage()?.dateTime, OffsetDateTime.now()).toMinutes()}м"
+                        val messageTime = data.getLastMessage()?.dateTime?.atZoneSameInstant(ZoneId.systemDefault())
+                        messageTime?.let { formatMessageDateTime2(it) } ?: ""
                     } else {
-                        "- м"  // или любой другой текст по умолчанию
+                        ""  // или любой другой текст по умолчанию
                     },
                     fontSize = 18.sp,
                 )
@@ -181,6 +189,35 @@ fun ChatRow(data: ChatData, onClick: (chatData: ChatData) -> Unit) {
                 .height(16.dp)
                 .weight(0.3f)
         )
+    }
+}
+
+fun formatMessageDateTime2(messageDateTime: ZonedDateTime): String {
+    val now = ZonedDateTime.now()
+    val today = now.toLocalDate()
+    val yesterday = today.minusDays(1)
+    val messageDate = messageDateTime.toLocalDate()
+
+    return when {
+        // Если сообщение сегодня - показываем только время
+        messageDate.isEqual(today) -> {
+            messageDateTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+        }
+
+        // Если сообщение вчера - пишем "Вчера" и время
+        messageDate.isEqual(yesterday) -> {
+            "Вчера, " + messageDateTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+        }
+
+        // Если в этом году - день, месяц и время
+        messageDate.year == today.year -> {
+            messageDateTime.format(DateTimeFormatter.ofPattern("d MMM, HH:mm"))
+        }
+
+        // Если другой год - полная дата со временем
+        else -> {
+            messageDateTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm"))
+        }
     }
 }
 

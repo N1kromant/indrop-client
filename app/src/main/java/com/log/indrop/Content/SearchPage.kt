@@ -61,7 +61,7 @@ fun SearchPage(viewModel: SearchViewModel = koinInject<SearchViewModel>(), mainV
 
     var showChatNameInput by remember { mutableStateOf(false) }
     var chatName by remember { mutableStateOf("") }
-
+    val myId by mainViewModel.myId.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
@@ -137,6 +137,7 @@ fun SearchPage(viewModel: SearchViewModel = koinInject<SearchViewModel>(), mainV
                 key = { index, user -> user?.authorId ?: index }
             ) { _, user ->
                 user?.let { userdata ->
+                    if (user.authorId == myId?.toLong()) return@itemsIndexed
                     UserListItemWithCheckbox(
                         name = "${userdata.firstName} ${userdata.lastName}",
                         login = userdata.login,
@@ -162,6 +163,7 @@ fun SearchPage(viewModel: SearchViewModel = koinInject<SearchViewModel>(), mainV
                     .padding(16.dp)
             ) {
                 OutlinedTextField(
+                    singleLine = true,
                     value = chatName,
                     onValueChange = { chatName = it; state.newChatTitle = chatName },
                     label = { Text("Название чата") },

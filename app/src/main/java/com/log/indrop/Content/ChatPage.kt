@@ -62,6 +62,8 @@ import java.time.format.DateTimeFormatter
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
@@ -95,8 +97,10 @@ fun ChatHeader(data: ChatData, onClick: (task: String, id: String?) -> Unit) {
             .fillMaxWidth()
             .height(IntrinsicSize.Min)
             .verticalScroll(rememberScrollState())
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(8.dp)
     ) {
-        Button(onClick = { onClick("goBack", null) }, Modifier.weight(0.3f)) {
+        IconButton(onClick = { onClick("goBack", null)}) {
             Icon(painter = painterResource(id = R.drawable.go_back), contentDescription = "goBack", tint = MaterialTheme.colorScheme.onPrimary)
         }
         Image(
@@ -114,9 +118,16 @@ fun ChatHeader(data: ChatData, onClick: (task: String, id: String?) -> Unit) {
             modifier = Modifier
                 .weight(1f)
                 .align(Alignment.CenterVertically),
-            fontSize = 28.sp
+            fontSize = 28.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
+    // Линия под Row
+    HorizontalDivider(
+        thickness = 1.dp,
+        color = MaterialTheme.colorScheme.onPrimary.copy()
+    )
 }
 
 @Composable
@@ -331,7 +342,7 @@ fun ChatFooter(me: UserData, onClick: (task: String, metaData: String?) -> Unit)
                 painter = painterResource(id = R.drawable.send),
                 contentDescription = "Отправить",
                 tint = if (text.isNotBlank())
-                    MaterialTheme.colorScheme.primary
+                    MaterialTheme.colorScheme.onPrimary
                 else
                     MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
             )
