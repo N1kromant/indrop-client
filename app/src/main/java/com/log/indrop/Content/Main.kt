@@ -1,6 +1,10 @@
 package com.log.indrop.Content
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -45,6 +49,8 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.log.indrop.ViewModels.MessagesViewModel.MessagesEffect
@@ -69,7 +75,7 @@ import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import kotlin.coroutines.cancellation.CancellationException
-
+import com.log.indrop.domain.services.notification.NotificationIntegrationManager
 
 
 class Main: AppCompatActivity() {
@@ -77,6 +83,9 @@ class Main: AppCompatActivity() {
     private val networkViewModel: NetworkViewModel by inject()
 
     private val networkManager: NetworkManager by inject()
+    private val notificationManager: NotificationIntegrationManager by inject()
+
+
     private lateinit var pickMedia: ActivityResultLauncher<PickVisualMediaRequest>
 
     var subscriptionJob: Job? = null
@@ -84,6 +93,26 @@ class Main: AppCompatActivity() {
     @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val hasPermission = ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (!hasPermission) {
+                ActivityCompat.requestPermissions(
+                    this, // ваша Activity
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    100
+                )
+            }
+        }
+
+        if (mainViewModel.isLoggedIn.value) {
+            notificationManager.restoreNotificationsIfNeeded(this)
+        }
+
 
         GlobalScope.launch {
 //            mainViewModel.makeFakeUserData()
@@ -211,11 +240,19 @@ class Main: AppCompatActivity() {
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun Screen(viewModel: MainViewModel = koinInject(), networkManager: NetworkManager = koinInject(), messagesViewModel: MessagesViewModel = koinInject(),  navigationHandler: NavigationHandlerImpl = koinInject(), onClick: (button: String, metaData: String?) -> Unit) {
+fun Screen(viewModel: MainViewModel = koinInject(),
+           networkManager: NetworkManager = koinInject(),
+           messagesViewModel: MessagesViewModel = koinInject(),
+           navigationHandler: NavigationHandlerImpl = koinInject(),
+           notificationManager: NotificationIntegrationManager = koinInject(),
+           onClick: (button: String, metaData: String?) -> Unit) {
     val navController = rememberNavController()
     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
     val isHideNavBar by viewModel.isHideNavBar.collectAsState()
     val coroutineScope = rememberCoroutineScope()
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+
 
     val context = LocalContext.current
     navigationHandler.setNavController(navController)
@@ -259,6 +296,12 @@ fun Screen(viewModel: MainViewModel = koinInject(), networkManager: NetworkManag
                                         viewModel.setMyId(loginResponse.userId.toString())
                                         viewModel.makeTrueUserData(loginResponse.UserData!!)
                                         onClick("startSub", null)
+
+                                        // После этого активируйте уведомления, передав MainViewModel и LifecycleOwner
+                                        notificationManager.setupNotificationsWithViewModel(viewModel, lifecycleOwner)
+
+                                        // 4. При выходе из аккаунта добавьте:
+                                        //notificationManager.deactivateNotifications()
 
                                         navController.navigate("messages")
                                         Toast.makeText(context, "Успешная Авторизация!", Toast.LENGTH_SHORT).show()

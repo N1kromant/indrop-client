@@ -35,7 +35,7 @@ class NotificationService(private val context: Context) {
         createNotificationChannel()
     }
 
-    private fun createNotificationChannel() {
+    fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
@@ -81,7 +81,6 @@ class NotificationService(private val context: Context) {
     // Уведомление о сообщении чата
     fun showChatMessageNotification(
         chatId: String,
-        senderId: String,
         senderName: String,
         message: String,
         senderAvatarResId: Int = R.drawable.app_icon // ID ресурса аватара по умолчанию
@@ -103,7 +102,6 @@ class NotificationService(private val context: Context) {
         val sender = Person.Builder()
             .setName(senderName)
             .setIcon(IconCompat.createWithResource(context, senderAvatarResId))
-            .setKey(senderId)
             .build()
 
         // Создаем стиль уведомления MessagingStyle для чатов

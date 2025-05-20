@@ -1,6 +1,7 @@
 package com.log.indrop
 
 import android.app.Application
+import android.app.NotificationManager
 import com.log.indrop.Repo.SearchRepositoryImpl
 import com.log.indrop.ViewModels.MessagesViewModel.MessagesViewModel
 import com.log.indrop.navigation.NavigationHandlerImpl
@@ -11,7 +12,10 @@ import com.log.indrop.ViewModels.Search.SearchViewModel
 import com.log.indrop.api.SearchApi
 import com.log.indrop.api.SearchApiImpl
 import com.log.indrop.api.SearchApiTestImpl
+import com.log.indrop.data.storage.UserPreferences
+import com.log.indrop.domain.services.notification.NotificationIntegrationManager
 import com.log.indrop.domain.services.notification.NotificationService
+import com.log.indrop.domain.subscription.MessageSubscriptionHandler
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -25,6 +29,13 @@ class App : Application() {
 
         val notificationModule = module {
             single { NotificationService(androidContext()) }
+            // UserPreferences для хранения данных пользователя
+            single { UserPreferences(androidContext()) }
+            // Обработчик подписки на уведомления о сообщениях
+            factory { MessageSubscriptionHandler(androidContext()) }
+            // Интеграционный менеджер для связи с ViewModel
+            //single { NotificationIntegrationManager(androidContext()) }
+            factory { NotificationIntegrationManager(androidContext()) }
         }
 
         val appModule = module {
@@ -55,7 +66,5 @@ class App : Application() {
                 notificationModule
             ))
         }
-
-
     }
 }
