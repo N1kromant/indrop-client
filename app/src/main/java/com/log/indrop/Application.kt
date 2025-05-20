@@ -11,6 +11,7 @@ import com.log.indrop.ViewModels.Search.SearchViewModel
 import com.log.indrop.api.SearchApi
 import com.log.indrop.api.SearchApiImpl
 import com.log.indrop.api.SearchApiTestImpl
+import com.log.indrop.domain.services.NotificationService
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -21,6 +22,10 @@ import org.koin.dsl.module
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
+
+        val notificationModule = module {
+            single { NotificationService(androidContext()) }
+        }
 
         val appModule = module {
 
@@ -45,7 +50,10 @@ class App : Application() {
             // Контекст Android
             androidContext(this@App)
             // Модули с зависимостями
-            modules(appModule)
+            modules(listOf(
+                appModule,
+                notificationModule
+            ))
         }
 
 

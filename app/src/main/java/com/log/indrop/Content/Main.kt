@@ -60,6 +60,7 @@ import com.example.graphql.MessageAddedSubscription
 import com.log.data.Content
 import com.log.data.OffsetDateTimeSerializer
 import com.log.data.UserData
+import com.log.indrop.domain.services.NotificationService
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.retryWhen
@@ -76,6 +77,7 @@ class Main: AppCompatActivity() {
     private val networkViewModel: NetworkViewModel by inject()
 
     private val networkManager: NetworkManager by inject()
+    private val notificationService by inject<NotificationService>()
     private lateinit var pickMedia: ActivityResultLauncher<PickVisualMediaRequest>
 
     var subscriptionJob: Job? = null
@@ -85,8 +87,8 @@ class Main: AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         GlobalScope.launch {
-            mainViewModel.makeFakeUserData()
-            mainViewModel.makeFakeChats()
+//            mainViewModel.makeFakeUserData()
+//            mainViewModel.makeFakeChats()
             mainViewModel.makeFakePosts()
 
         //    networkManager.connect()
