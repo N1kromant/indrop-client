@@ -77,7 +77,6 @@ class Main: AppCompatActivity() {
     private val networkViewModel: NetworkViewModel by inject()
 
     private val networkManager: NetworkManager by inject()
-    private val notificationService by inject<NotificationService>()
     private lateinit var pickMedia: ActivityResultLauncher<PickVisualMediaRequest>
 
     var subscriptionJob: Job? = null
