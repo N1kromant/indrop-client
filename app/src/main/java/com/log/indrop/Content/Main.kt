@@ -60,7 +60,7 @@ import com.example.graphql.MessageAddedSubscription
 import com.log.data.Content
 import com.log.data.OffsetDateTimeSerializer
 import com.log.data.UserData
-import com.log.indrop.domain.services.NotificationService
+import com.log.indrop.domain.services.notification.NotificationService
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.retryWhen

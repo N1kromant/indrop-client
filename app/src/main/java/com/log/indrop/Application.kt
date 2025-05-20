@@ -11,7 +11,7 @@ import com.log.indrop.ViewModels.Search.SearchViewModel
 import com.log.indrop.api.SearchApi
 import com.log.indrop.api.SearchApiImpl
 import com.log.indrop.api.SearchApiTestImpl
-import com.log.indrop.domain.services.NotificationService
+import com.log.indrop.domain.services.notification.NotificationService
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.androidx.viewmodel.dsl.viewModel
