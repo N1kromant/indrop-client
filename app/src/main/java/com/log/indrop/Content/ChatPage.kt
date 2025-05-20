@@ -247,7 +247,6 @@ fun UserAvatar(iconUrl: String?, userName: String) {
         contentAlignment = Alignment.Center
     ) {
         if (iconUrl != null && iconUrl != "ICON") {
-            println(iconUrl)
             AsyncImage(
                 model = iconUrl,
                 contentDescription = "Avatar",

@@ -101,15 +101,15 @@ class MainViewModel: ViewModel() {
         if (chatIndex == -1) {
             return false
         }
-        
-        val updatedChats = currentChats.toMutableList()
-        
-        val chat = updatedChats[chatIndex]
-        val updatedChat = chat.copy(messages = chat.messages + message)
-        
-        updatedChats[chatIndex] = updatedChat
-        _chats.value = updatedChats
 
+        _chats.value = currentChats.map { chat ->
+            if (chat.chatId == chatId) {
+                chat.copy(messages = chat.messages + message)
+            } else {
+                chat
+            }
+        }
+        _currentChat.value?.let{addMessageCurrentChat(message)}
         sortChatsByLatestMessage()
 
         return true

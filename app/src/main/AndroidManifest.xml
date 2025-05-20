@@ -18,12 +18,16 @@
         android:theme="@style/Theme.Indrop"
         tools:targetApi="31">
         <activity android:name="com.log.indrop.Content.Main"
-            android:exported="true">
+            android:exported="true"
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity">
+
             <!-- Главная активити -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
     </application>
 

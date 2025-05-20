@@ -51,8 +51,9 @@ subscription MessageNotification($userId: ID!) {
 }
 
 # Файл src/main/graphql/MessageNotificationSubscription.graphql
-subscription MessageAdded($chatId: ID!) {
-  messageAdded(chatId: $chatId) {
+subscription MessageAdded($userId: ID!) {
+  messageAdded(userId: $userId) {
+      chatId
       messageId
       author
       {

@@ -62,6 +62,8 @@ import com.log.data.OffsetDateTimeSerializer
 import com.log.data.UserData
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.retryWhen
+import kotlinx.coroutines.time.delay
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -129,7 +131,7 @@ class Main: AppCompatActivity() {
 
                                 // Запускаем новую
                                 subscriptionJob = coroutine.launch {
-                                    startMessageAddedSubscriptionOneChat(mainViewModel.currentChat.value!!.chatId.toString())
+                                    startMessageAddedSubscription()
                                 }
                                 Log.i("info","Подписка начата")
                             }
@@ -154,29 +156,44 @@ class Main: AppCompatActivity() {
     }
 
 
-    private suspend fun startMessageAddedSubscriptionOneChat(chatId: String) {
+    private suspend fun startMessageAddedSubscription() {
         val client = networkManager.apolloClient
-        println("Активация подписки на  сообщения для чата $chatId")
 
         try {
-            val subscription = MessageAddedSubscription(chatId = chatId)
+            val subscription = MessageAddedSubscription(userId = mainViewModel.myId.value!!)
 
             client.subscription(subscription)
                 .toFlow()
+                .retryWhen { cause, attempt ->
+                    println("Подписка завершилась: $cause, попытка $attempt")
+                    true // пробуем заново
+                }
                 .collect { response ->
                     if (response.hasErrors()) {
                         println("Ошибка в подписке: ${response.errors}")
                     } else if (response.data != null) {
                         val message = response.data!!.messageAdded
+                        println(response.data!!.messageAdded)
+                        println(response.data!!.messageAdded.content.text.toString())
+//                        val success2 = mainViewModel.addMessageCurrentChat(
+//                            Message(message.messageId.toLong(),
+//                                author = UserData(message.author.authorId.toLong(), message.author.login, message.author.firstName, message.author.lastName, message.author.icon),
+//                                dateTime = Instant.ofEpochMilli(message.dateTime.toLong()).atOffset(
+//                                    ZoneOffset.UTC) ,
+//                                content = Content(message.content.text, message.content.images),
+//                                isReplyTo = message.isReplyTo?.toLong()
+//                                ))
 
-                        val success = mainViewModel.addMessageCurrentChat(
+                        val success = mainViewModel.addMessage(
+                            response.data!!.messageAdded.chatId.toLong(),
                             Message(message.messageId.toLong(),
                                 author = UserData(message.author.authorId.toLong(), message.author.login, message.author.firstName, message.author.lastName, message.author.icon),
                                 dateTime = Instant.ofEpochMilli(message.dateTime.toLong()).atOffset(
                                     ZoneOffset.UTC) ,
                                 content = Content(message.content.text, message.content.images),
                                 isReplyTo = message.isReplyTo?.toLong()
-                                ))
+                            )
+                        )
 
                     }
                 }
@@ -240,6 +257,7 @@ fun Screen(viewModel: MainViewModel = koinInject(), networkManager: NetworkManag
                                         viewModel.login()
                                         viewModel.setMyId(loginResponse.userId.toString())
                                         viewModel.makeTrueUserData(loginResponse.UserData!!)
+                                        onClick("startSub", null)
 
                                         navController.navigate("messages")
                                         Toast.makeText(context, "Успешная Авторизация!", Toast.LENGTH_SHORT).show()
@@ -309,8 +327,8 @@ fun Screen(viewModel: MainViewModel = koinInject(), networkManager: NetworkManag
                                 popUpTo("messages")
                             }
                             "sendMessage" -> onClick("sendMessage", metaData)
-                            "startSubscription" -> onClick("startSub", metaData)
-                            "cancelSubscription" -> onClick("cancelSub", metaData)
+                            "startSubscription" -> {}
+                            "cancelSubscription" -> {}
                         }
                     }
 //                    viewModel.chats.value.forEach {

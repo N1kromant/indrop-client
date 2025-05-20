@@ -20,7 +20,7 @@ type Mutation {
 }
 
 type Subscription {
-  messageAdded(chatId: ID!): Message!
+  messageAdded(userId: ID!): Message!
   messageNotification(userId: ID!): MessageNotification!
 }
 
@@ -39,6 +39,7 @@ type Chat {
 }
 
 type Message {
+  chatId: ID!
   messageId: ID!
   author: User!
   dateTime: String!
