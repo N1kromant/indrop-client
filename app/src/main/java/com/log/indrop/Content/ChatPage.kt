@@ -141,7 +141,7 @@ fun ChatContent(chat: ChatData, myId: String, columnScope: ColumnScope) {
     // Автоскролл при добавлении новых сообщений
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
-            listState.animateScrollToItem(messages.lastIndex)
+            listState.animateScrollToItem(0) // Скроллим к первому (самому новому) элементу
         }
     }
 
@@ -151,15 +151,14 @@ fun ChatContent(chat: ChatData, myId: String, columnScope: ColumnScope) {
                 .weight(1f)
                 .fillMaxWidth(),
             state = listState,
-            verticalArrangement = Arrangement.Bottom
+            reverseLayout = true // Переворачиваем список, чтобы новые сообщения были внизу
         ) {
-            items(messages) { message ->
+            items(messages.reversed()) { message -> // Также переворачиваем порядок сообщений
                 Message(message, message.author.authorId == myId.toLong())
             }
         }
     }
 }
-
 
 @Composable
 fun Message(message: Message, isMyMessage: Boolean) {
