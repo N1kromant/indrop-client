@@ -281,9 +281,9 @@ fun Screen(viewModel: MainViewModel = koinInject(),
                     AuthScreen(
                         isLoggedIn = { username, password ->
 
+
                             //для тестов фаст вход //FIXME убрать
                             if(username == "" && password == "") {
-                                println("ФАСТВХОД!!!!!!")
                                 viewModel.login()
                                 viewModel.setMyId("1")
                                 navController.navigate("messages")
@@ -298,8 +298,6 @@ fun Screen(viewModel: MainViewModel = koinInject(),
                                         viewModel.makeTrueUserData(loginResponse.UserData!!)
                                         onClick("startSub", null)
 
-                                        // После этого активируйте уведомления, передав MainViewModel и LifecycleOwner
-                                        notificationManager.setupNotificationsWithViewModel(viewModel, lifecycleOwner)
 
                                         // 4. При выходе из аккаунта добавьте:
                                         //notificationManager.deactivateNotifications()
