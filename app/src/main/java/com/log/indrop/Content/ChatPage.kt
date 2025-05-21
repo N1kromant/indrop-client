@@ -61,10 +61,13 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Surface
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import java.time.ZonedDateTime
@@ -162,10 +165,13 @@ fun ChatContent(chat: ChatData, myId: String, columnScope: ColumnScope) {
 fun Message(message: Message, isMyMessage: Boolean) {
     val shape = RoundedCornerShape(16.dp)
     val backgroundColor = MaterialTheme.colorScheme.primaryContainer
-
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val minWidth = screenWidth * 0.3f    // Минимум 30% экрана
+    val maxWidth = screenWidth * 0.7f     // Максимум 70% экрана
     Row(
         Modifier
-            .fillMaxWidth()
+            .fillMaxWidth()  // Занимаем всю доступную ширину для выравнивания
             .padding(horizontal = 8.dp, vertical = 4.dp),
         horizontalArrangement = if (isMyMessage) Arrangement.End else Arrangement.Start,
     ) {
@@ -174,10 +180,11 @@ fun Message(message: Message, isMyMessage: Boolean) {
             UserAvatar(message.author.icon, message.author.firstName)
             Spacer(modifier = Modifier.size(8.dp))
         }
-
         Column(
-            // Ограничиваем ширину сообщения до 75% экрана
-            modifier = Modifier.widthIn(max = 280.dp)
+            // Ограничиваем ширину сообщения между min и max
+            modifier = Modifier.widthIn(min = minWidth, max = maxWidth),
+            // Добавляем выравнивание для всего содержимого колонки
+            horizontalAlignment = if (isMyMessage) Alignment.End else Alignment.Start
         ) {
             // Имя автора сообщения с соответствующим выравниванием
             Text(
@@ -188,44 +195,44 @@ fun Message(message: Message, isMyMessage: Boolean) {
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = if (isMyMessage) TextAlign.End else TextAlign.Start
             )
-
             // Содержимое сообщения
-            Column(
-                Modifier
-                    .background(backgroundColor, shape)
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
+            Surface(
+                shape = shape,
+                color = backgroundColor,
+                modifier = Modifier.wrapContentWidth() // Контейнер сообщения подстраивается под контент
             ) {
-                // Текст сообщения
-                Text(
-                    text = message.content.text ?: "",
-                    fontSize = 16.sp  // Уменьшенный размер текста (было 20.sp)
-                )
-
-                // Время и логин отправителя
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = if (isMyMessage) Arrangement.Start else Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                 ) {
-                    val zonedDateTime = message.dateTime.atZoneSameInstant(ZoneId.systemDefault())
-                    val formatted = formatMessageDateTime(zonedDateTime)
+                    // Текст сообщения
                     Text(
-                        text = formatted,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Light,
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                        text = message.content.text ?: "",
+                        fontSize = 16.sp
                     )
-                    Spacer(modifier = Modifier.size(4.dp))
-                    Text(
-                        text = "@${message.author.login}",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Light,
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
-                    )
+                    // Время и логин отправителя
+                    Row(
+                        modifier = Modifier.align(if (isMyMessage) Alignment.End else Alignment.Start),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val zonedDateTime = message.dateTime.atZoneSameInstant(ZoneId.systemDefault())
+                        val formatted = formatMessageDateTime(zonedDateTime)
+                        Text(
+                            text = formatted,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Light,
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                        )
+                        Spacer(modifier = Modifier.size(4.dp))
+                        Text(
+                            text = "@${message.author.login}",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Light,
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                        )
+                    }
                 }
             }
         }
-
         // Аватар пользователя для своих сообщений (справа)
         if (isMyMessage) {
             Spacer(modifier = Modifier.size(8.dp))
