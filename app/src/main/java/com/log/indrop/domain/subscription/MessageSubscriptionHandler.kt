@@ -27,7 +27,7 @@ class MessageSubscriptionHandler(private val context: Context) : KoinComponent {
 
             // Также можно запустить подписку в основном приложении,
             // чтобы получать уведомления немедленно, пока приложение активно
-            subscriptionManager.startForegroundSubscription(userId, client)
+            //subscriptionManager.startForegroundSubscription(userId, client) //FIXME: Я ХЗ ЧЁ ЭТО ЗА ХУЕТА
 
         } catch (e: CancellationException) {
             println("Подписка отменена")

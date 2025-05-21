@@ -2,7 +2,6 @@ package com.log.indrop.Content
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -24,7 +23,6 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -51,31 +49,22 @@ import kotlinx.serialization.json.Json
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.log.indrop.ViewModels.MessagesViewModel.MessagesEffect
 import com.log.indrop.ViewModels.MessagesViewModel.MessagesViewModel
 import com.log.indrop.navigation.NavigationHandlerImpl
 import org.koin.android.ext.android.inject
 import org.koin.androidx.compose.KoinAndroidContext
-import org.koin.androidx.compose.koinViewModel
-import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.compose.koinInject
-import androidx.lifecycle.flowWithLifecycle
 import com.example.graphql.MessageAddedSubscription
 import com.log.data.Content
-import com.log.data.OffsetDateTimeSerializer
 import com.log.data.UserData
-import com.log.indrop.domain.services.notification.NotificationService
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.retryWhen
-import kotlinx.coroutines.time.delay
 import java.time.Instant
-import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import kotlin.coroutines.cancellation.CancellationException
 import com.log.indrop.domain.services.notification.NotificationIntegrationManager
+import com.log.indrop.domain.services.notification.NotificationSubscriptionManager
 
 
 class Main: AppCompatActivity() {
@@ -83,7 +72,8 @@ class Main: AppCompatActivity() {
     private val networkViewModel: NetworkViewModel by inject()
 
     private val networkManager: NetworkManager by inject()
-    private val notificationManager: NotificationIntegrationManager by inject()
+    private val notificationIntManager: NotificationIntegrationManager by inject()
+//    private val notificationSubManager: NotificationSubscriptionManager by inject()
 
 
     private lateinit var pickMedia: ActivityResultLauncher<PickVisualMediaRequest>
@@ -108,9 +98,10 @@ class Main: AppCompatActivity() {
                 )
             }
         }
+//        notificationSubManager.stopBackgroundSubscription()
 
         if (mainViewModel.isLoggedIn.value) {
-            notificationManager.restoreNotificationsIfNeeded(this)
+            notificationIntManager.restoreNotificationsIfNeeded(this)
         }
 
 
