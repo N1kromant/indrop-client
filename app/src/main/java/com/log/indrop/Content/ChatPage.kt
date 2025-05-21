@@ -62,6 +62,7 @@ import java.time.format.DateTimeFormatter
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
@@ -72,6 +73,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import java.time.ZonedDateTime
 import coil.compose.AsyncImage
+import java.time.temporal.ChronoUnit
 
 @Composable
 fun ChatPage(data: ChatData, myId: String, me: UserData, onClick: (task: String, metaData: String?) -> Unit) {
@@ -145,40 +147,59 @@ fun ChatContent(chat: ChatData, myId: String, columnScope: ColumnScope) {
         }
     }
 
+    val reversedMessages = messages.reversed()
+
     columnScope.apply {
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth(),
             state = listState,
-            reverseLayout = true // Переворачиваем список, чтобы новые сообщения были внизу
+            reverseLayout = true
         ) {
-            items(messages.reversed()) { message -> // Также переворачиваем порядок сообщений
-                Message(message, message.author.authorId == myId.toLong())
+            itemsIndexed(reversedMessages) { index, message ->
+                val previous = reversedMessages.getOrNull(index + 1)
+                Message(message, message.author.authorId == myId.toLong(), previous)
             }
         }
     }
 }
 
 @Composable
-fun Message(message: Message, isMyMessage: Boolean) {
+fun Message(message: Message, isMyMessage: Boolean, previous: Message? = null) {
     val shape = RoundedCornerShape(16.dp)
     val backgroundColor = MaterialTheme.colorScheme.primaryContainer
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     val minWidth = screenWidth * 0.3f    // Минимум 30% экрана
     val maxWidth = screenWidth * 0.7f     // Максимум 70% экрана
+
+    // Определяем, нужно ли показывать имя автора
+    val shouldShowAuthorName = previous == null ||
+            previous.author.login != message.author.login ||
+            shouldShowTimeGap(previous.dateTime, message.dateTime)
+
+    // Определяем, нужно ли показывать аватар
+    val shouldShowAvatar = previous == null ||
+            previous.author.login != message.author.login
+
     Row(
         Modifier
             .fillMaxWidth()  // Занимаем всю доступную ширину для выравнивания
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .padding(horizontal = 8.dp, vertical = 1.dp),
         horizontalArrangement = if (isMyMessage) Arrangement.End else Arrangement.Start,
     ) {
         // Аватар пользователя для чужих сообщений (слева)
         if (!isMyMessage) {
-            UserAvatar(message.author.icon, message.author.firstName)
-            Spacer(modifier = Modifier.size(8.dp))
+            if (shouldShowAvatar) {
+                UserAvatar(message.author.icon, message.author.firstName)
+                Spacer(modifier = Modifier.size(8.dp))
+            } else {
+                // Добавляем отступ вместо аватара для выравнивания
+                Spacer(modifier = Modifier.size(44.dp)) // 36dp (размер аватара) + 8dp (отступ)
+            }
         }
+
         Column(
             // Ограничиваем ширину сообщения между min и max
             modifier = Modifier.widthIn(min = minWidth, max = maxWidth),
@@ -186,14 +207,17 @@ fun Message(message: Message, isMyMessage: Boolean) {
             horizontalAlignment = if (isMyMessage) Alignment.End else Alignment.Start
         ) {
             // Имя автора сообщения с соответствующим выравниванием
-            Text(
-                text = message.author.firstName,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = if (isMyMessage) TextAlign.End else TextAlign.Start
-            )
+            if (shouldShowAuthorName) {
+                Text(
+                    text = message.author.firstName,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = if (isMyMessage) TextAlign.End else TextAlign.Start
+                )
+            }
+
             // Содержимое сообщения
             Surface(
                 shape = shape,
@@ -232,12 +256,25 @@ fun Message(message: Message, isMyMessage: Boolean) {
                 }
             }
         }
+
         // Аватар пользователя для своих сообщений (справа)
         if (isMyMessage) {
-            Spacer(modifier = Modifier.size(8.dp))
-            UserAvatar(message.author.icon, message.author.firstName)
+            if (shouldShowAvatar) {
+                Spacer(modifier = Modifier.size(8.dp))
+                UserAvatar(message.author.icon, message.author.firstName)
+            } else {
+                // Добавляем отступ вместо аватара для выравнивания
+                Spacer(modifier = Modifier.size(44.dp)) // 36dp (размер аватара) + 8dp (отступ)
+            }
         }
     }
+}
+
+// Функция для определения, прошло ли более 15 минут между сообщениями
+private fun shouldShowTimeGap(previousTime: OffsetDateTime, currentTime: OffsetDateTime): Boolean {
+    // Разница в минутах между текущим и предыдущим сообщением
+    val minutesDifference = ChronoUnit.MINUTES.between(previousTime, currentTime)
+    return minutesDifference >= 15
 }
 
 // Обновленный компонент для отображения аватара пользователя
