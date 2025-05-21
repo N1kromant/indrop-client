@@ -4,6 +4,8 @@ import android.app.Application
 import android.app.NotificationManager
 import com.log.indrop.Repo.SearchRepositoryImpl
 import com.log.indrop.ViewModels.MessagesViewModel.MessagesViewModel
+import com.log.indrop.ViewModels.News.NewsState
+import com.log.indrop.ViewModels.News.NewsViewModel
 import com.log.indrop.navigation.NavigationHandlerImpl
 import com.log.network.NetworkManager
 import com.log.network.ViewModels.MainViewModel
@@ -39,6 +41,8 @@ class App : Application() {
         }
 
         val appModule = module {
+
+            viewModel { NewsViewModel() }
 
             single { NetworkManager() }
             single { NavigationHandlerImpl() }

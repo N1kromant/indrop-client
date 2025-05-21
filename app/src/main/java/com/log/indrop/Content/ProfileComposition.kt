@@ -264,9 +264,9 @@ fun ProfilePagePreview(){
 
     val posts = remember { MutableStateFlow(
         listOf(
-            PostData(0, author, dateTime, content1, null),
-            PostData(1, author, dateTime, content2, null),
-            PostData(2, author, dateTime, content3, null)
+            PostData(0, author, dateTime, content1),
+            PostData(1, author, dateTime, content2),
+            PostData(2, author, dateTime, content3)
         )
     ) }
 

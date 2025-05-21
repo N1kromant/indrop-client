@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,12 +28,16 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.log.data.Content
 import com.log.data.PostData
 import com.log.data.UserData
 import com.log.indrop.R
+import com.log.indrop.ViewModels.News.NewsEffect
+import com.log.indrop.ViewModels.News.NewsViewModel
 import com.log.indrop.ui.theme2.InkTheme
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.koin.androidx.compose.koinViewModel
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
@@ -176,7 +181,6 @@ fun PostHeaderPreview() {
             author = author,
             dateTime = dateTime,
             content = content,
-            comments = null
         )
     )
 }
@@ -263,7 +267,21 @@ fun PostFooterPreview() {
 
 
 @Composable
-fun NewsPage(postsData: MutableStateFlow<List<PostData>>, onClick: (button: String, metaData: String?) -> Unit) {
+fun NewsPage(
+    viewModel: NewsViewModel = koinViewModel<NewsViewModel>(),
+    navController: NavHostController
+) {
+
+    LaunchedEffect(key1 = true) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is NewsEffect.RouteProfileEffect -> {
+                    navController.navigate("profile/${effect.userid}")
+                }
+            }
+        }
+    }
+
     LazyColumn {
         item {
             Text(
@@ -271,7 +289,7 @@ fun NewsPage(postsData: MutableStateFlow<List<PostData>>, onClick: (button: Stri
                 fontSize = 48.sp,
             )
         }
-        items(postsData.value) {
+        items(viewModel.state.value.posts) {
             Post(it)
         }
 //        item {
@@ -326,22 +344,22 @@ fun NewsPagePreview() {
 
     val posts = remember { MutableStateFlow(
         listOf(
-            PostData(0, author, dateTime, content1, null),
-            PostData(1, author, dateTime, content2, null),
-            PostData(2, author, dateTime, content3, null)
+            PostData(0, author, dateTime, content1),
+            PostData(1, author, dateTime, content2),
+            PostData(2, author, dateTime, content3)
         )
     ) }
 
-    InkTheme {
-        Column {
-            NewsPage(posts) { button, metaData ->  
-
-            }
-            NavBar(modifier = Modifier.weight(0.2f)) {
-
-            }
-        }
-    }
+//    InkTheme {
+//        Column {
+//            NewsPage(posts) { button, metaData ->  //FIXME: ПОЧИНИ МОЛЮ
+//
+//            }
+//            NavBar(modifier = Modifier.weight(0.2f)) {
+//
+//            }
+//        }
+//    }
 }
 @Composable
 fun ViewsCount(

@@ -64,7 +64,6 @@ import java.time.Instant
 import java.time.ZoneOffset
 import kotlin.coroutines.cancellation.CancellationException
 import com.log.indrop.domain.services.notification.NotificationIntegrationManager
-import com.log.indrop.domain.services.notification.NotificationSubscriptionManager
 
 
 class Main: AppCompatActivity() {
@@ -325,7 +324,7 @@ fun Screen(viewModel: MainViewModel = koinInject(),
                         }
                     )
                 }
-                composable("news" ) { NewsPage(viewModel.posts) { button, metaData ->  onClick(button, metaData) } }
+                composable("news") { NewsPage(navController = navController) }
 
                 composable(route = "messages") {
                     coroutineScope.launch {
@@ -343,7 +342,7 @@ fun Screen(viewModel: MainViewModel = koinInject(),
                         navController.navigate("chat")
                     }
                 }
-                composable("profile") { ProfilePage(
+                composable("profile") { ProfilePage( //TODO: Добавить переход по userid
                     viewModel.posts,
                     viewModel.myUserData.collectAsState().value!!
                 ) }

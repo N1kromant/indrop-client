@@ -1,23 +1,14 @@
 package com.log.data
 
-import kotlinx.serialization.Contextual
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import java.time.OffsetDateTime
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.builtins.nullable
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.descriptors.element
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.json.Json
 
 @Serializable
@@ -36,20 +27,49 @@ data class UserData(
     val icon: String?, //Url
 )
 
+interface Likeable {
+    val postId: Long
+    var likesCount: Int
+    var isLiked: Boolean
+}
+
 data class PostData(
-    val postId: Long,
+    override val postId: Long,
     val author: UserData,
     val dateTime: OffsetDateTime,
     val content: Content,
-    val comments: List<Message>?,
-)
+    val comments: List<Comment> = emptyList<Comment>(),
+    override var likesCount: Int = 0,
+    override var isLiked: Boolean = false
+) : Likeable {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is PostData) return false
+        return postId == other.postId
+    }
+
+    override fun hashCode(): Int {
+        return postId.hashCode()
+    }
+}
 
 data class Comment(
     val id: Long?,
-    val postId: Long,
     val content: Message,
-    var likesCount: Int
-)
+    override val postId: Long,
+    override var likesCount: Int = 0,
+    override var isLiked: Boolean = false
+) : Likeable {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Comment) return false
+        return id == other.id
+    }
+
+    override fun hashCode(): Int {
+        return id.hashCode()
+    }
+}
 
 @Serializable
 data class ChatData(
