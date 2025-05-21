@@ -36,6 +36,8 @@ class NotificationSubscriptionService : Service() {
         NotificationService(applicationContext)
     }
 
+    private val recentMessages = mutableMapOf<String, MutableList<NotificationCompat.MessagingStyle.Message>>()
+
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var subscriptionJob: Job? = null
     private lateinit var apolloClient: ApolloClient
@@ -70,8 +72,8 @@ class NotificationSubscriptionService : Service() {
         // Создаем канал уведомлений, используя существующий NotificationService
         notificationService.createNotificationChannel()
 
-        return NotificationCompat.Builder(this, NotificationService.CHANNEL_ID)
-            .setContentTitle("InDrop активен")
+        return NotificationCompat.Builder(this, "foreground_service_channel")
+            .setContentTitle("1ndrop активен")
             .setContentText("Получение уведомлений о новых сообщениях")
             .setSmallIcon(R.drawable.app_icon)
             .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -96,12 +98,14 @@ class NotificationSubscriptionService : Service() {
                         val notification = response.data!!.messageNotification
                         Log.d(TAG, "Получено новое уведомление о сообщении: ${notification.messagePreview}")
 
-                        // Отправка уведомления пользователю
-                        notificationService.showChatMessageNotification(
-                            chatId = notification.chatId,
-                            senderName = notification.senderLogin,
-                            message = notification.messagePreview
-                        )
+                        if (!AppVisibilityTracker.isAppInForeground) {
+                            // Отправка уведомления пользователю
+                            notificationService.showChatMessageNotification(
+                                chatId = notification.chatId,
+                                senderName = notification.senderLogin,
+                                message = notification.messagePreview
+                            )
+                        }
                     }
                 }
                 .catch { e ->

@@ -8,6 +8,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.RingtoneManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -18,6 +19,7 @@ import com.log.indrop.R
 import java.util.concurrent.atomic.AtomicInteger
 
 class NotificationService(private val context: Context) {
+    private val chatNotificationIds = mutableMapOf<String, Int>()
 
     companion object {
         const val CHANNEL_ID = "messages"
@@ -35,6 +37,8 @@ class NotificationService(private val context: Context) {
         createNotificationChannel()
     }
 
+    private val recentMessages = mutableMapOf<String, MutableList<NotificationCompat.MessagingStyle.Message>>()
+
     fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -47,6 +51,22 @@ class NotificationService(private val context: Context) {
 
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
+
+            // Канал для foreground сервиса — silent
+            val foregroundChannel = NotificationChannel(
+                "foreground_service_channel",
+                "Foreground Service",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                setSound(null, null)
+                enableVibration(false)
+                setShowBadge(false)
+                lockscreenVisibility = Notification.VISIBILITY_SECRET
+            }
+
+            // Создать канал
+            notificationManager.createNotificationChannel(foregroundChannel)
+
         }
     }
 
@@ -85,7 +105,8 @@ class NotificationService(private val context: Context) {
         message: String,
         senderAvatarResId: Int = R.drawable.app_icon // ID ресурса аватара по умолчанию
     ): Int {
-        val notificationId = getNewNotificationId()
+
+        val notificationId = chatNotificationIds.getOrPut(chatId) { getNewNotificationId() }
 
         // Intent для открытия конкретного чата
         val intent = Intent(context, Main::class.java).apply {
@@ -104,9 +125,26 @@ class NotificationService(private val context: Context) {
             .setIcon(IconCompat.createWithResource(context, senderAvatarResId))
             .build()
 
+
+        val messages = recentMessages.getOrPut(chatId) { mutableListOf() }
+
+        messages += NotificationCompat.MessagingStyle.Message(
+            message,
+            System.currentTimeMillis(),
+            sender
+        )
+
+        // Формируем объединённый текст уведомления из последних сообщений
+        val summaryText = messages.takeLast(3).joinToString(separator = "\n") { it.text.toString() }
+
+        // Решаем, обновлять или создавать новое (условно, всегда обновляем)
+        updateNotification(notificationId, senderName, summaryText)
+
+        // Также обнови summary notification для группы чата
+        showSummaryNotification(chatId, senderName)
         // Создаем стиль уведомления MessagingStyle для чатов
         val messagingStyle = NotificationCompat.MessagingStyle(sender)
-            .addMessage(message, System.currentTimeMillis(), sender)
+        messages.takeLast(10).forEach { messagingStyle.addMessage(it) }
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.app_icon)
@@ -190,5 +228,13 @@ class NotificationService(private val context: Context) {
     // Отмена всех уведомлений
     fun cancelAllNotifications() {
         NotificationManagerCompat.from(context).cancelAll()
+    }
+
+    fun clearChatNotifications(chatId: String) {
+        chatNotificationIds[chatId]?.let {
+            NotificationManagerCompat.from(context).cancel(it)
+        }
+        chatNotificationIds.remove(chatId)
+        recentMessages.remove(chatId)
     }
 }

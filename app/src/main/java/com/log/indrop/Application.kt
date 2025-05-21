@@ -54,6 +54,9 @@ class App : Application() {
             single { SearchViewModel(get()) }
             single { MessagesViewModel() }
 
+
+
+
             // Создание нового экземпляра при каждом запросе
 //            factory { UseCase(get()) }
 

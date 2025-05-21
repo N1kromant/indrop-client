@@ -50,6 +50,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.log.indrop.ViewModels.MessagesViewModel.MessagesViewModel
 import com.log.indrop.navigation.NavigationHandlerImpl
 import org.koin.android.ext.android.inject
@@ -58,6 +59,7 @@ import org.koin.compose.koinInject
 import com.example.graphql.MessageAddedSubscription
 import com.log.data.Content
 import com.log.data.UserData
+import com.log.indrop.domain.services.notification.AppVisibilityTracker
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.retryWhen
 import java.time.Instant
@@ -146,17 +148,16 @@ class Main: AppCompatActivity() {
                                 }
                             }
                             "startSub" -> {
+                                AppVisibilityTracker.isAppInForeground = true
                                 // Останавливаем предыдущую подписку, если была
                                 subscriptionJob?.cancel()
 
                                 // Запускаем новую
-                                subscriptionJob = coroutine.launch {
+                                subscriptionJob = lifecycleScope.launch {
                                     startMessageAddedSubscription()
                                 }
-                                Log.i("info","Подписка начата")
                             }
                             "cancelSub" -> {
-                                Log.i("info","Подписка отменена через явный вызов cancelSub")
                                 subscriptionJob?.cancel()
                                 subscriptionJob = null
                             }
@@ -172,6 +173,31 @@ class Main: AppCompatActivity() {
             } else {
                 Toast.makeText(this, "No media selected", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        if (mainViewModel.isLoggedIn.value){
+            AppVisibilityTracker.isAppInForeground = true
+            // Останавливаем предыдущую подписку, если была
+            subscriptionJob?.cancel()
+
+            // Запускаем новую
+            subscriptionJob = lifecycleScope.launch {
+                startMessageAddedSubscription()
+            }
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        if (mainViewModel.isLoggedIn.value) {
+            AppVisibilityTracker.isAppInForeground = false
+            subscriptionJob?.cancel()
+            subscriptionJob = null
         }
     }
 
@@ -286,11 +312,10 @@ fun Screen(viewModel: MainViewModel = koinInject(),
                                         viewModel.login()
                                         viewModel.setMyId(loginResponse.userId.toString())
                                         viewModel.makeTrueUserData(loginResponse.UserData!!)
-                                        onClick("startSub", null)
 
                                         // После этого активируйте уведомления, передав MainViewModel и LifecycleOwner
                                         notificationManager.setupNotificationsWithViewModel(viewModel, lifecycleOwner)
-
+                                        onClick("startSub", null)
                                         // 4. При выходе из аккаунта добавьте:
                                         //notificationManager.deactivateNotifications()
 
