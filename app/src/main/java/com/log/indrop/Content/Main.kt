@@ -283,6 +283,7 @@ fun Screen(viewModel: MainViewModel = koinInject(),
 
                             //для тестов фаст вход //FIXME убрать
                             if(username == "" && password == "") {
+                                println("ФАСТВХОД!!!!!!")
                                 viewModel.login()
                                 viewModel.setMyId("1")
                                 navController.navigate("messages")
