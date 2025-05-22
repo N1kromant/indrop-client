@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
@@ -91,6 +92,10 @@ class NotificationSubscriptionService : Service() {
 
             apolloClient.subscription(subscription)
                 .toFlow()
+                .retryWhen { cause, attempt ->
+                    println("Подписка завершилась: $cause, попытка $attempt")
+                    true // пробуем заново
+                }
                 .onEach { response ->
                     if (response.hasErrors()) {
                         Log.e(TAG, "Ошибка в подписке: ${response.errors}")
