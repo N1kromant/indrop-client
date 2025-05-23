@@ -35,6 +35,17 @@ class MainViewModel: ViewModel() {
     val posts: MutableStateFlow<List<PostData>>
         get() = _posts
 
+
+    fun clearAllData(){
+        _isLoggedIn.value = false
+        _isHideNavBar.value = false
+        _currentChat.value = null
+        _myId.value = null
+        _myUserData.value = null
+        _chats.value = emptyList()
+        _posts.value = emptyList()
+    }
+
     fun openChat(chatData: ChatData): Boolean {
         val chat = _chats.value.find { it.chatId == chatData.chatId }
         if (chat != null) {
@@ -164,12 +175,19 @@ class MainViewModel: ViewModel() {
 
     fun logout() {
         _isLoggedIn.value = false
+        _myId.value = null
     }
 
     // Метод для обновления списка чатов
     fun updateChatDataList(newList: List<ChatData>) {
         _chats.value = newList
     }
+
+
+    fun clearChatData() {
+        _chats.value = emptyList()
+    }
+
 
     fun makeTrueUserData(UserData: UserData) {
         val me = UserData(

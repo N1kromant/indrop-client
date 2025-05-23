@@ -34,6 +34,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -573,6 +574,32 @@ fun RegistrationForm(name: MutableState<String>, login: MutableState<String>, pa
 }
 
 @Composable
+fun ExitButton(submitButtonText: String, fontSize: TextUnit, onClick: () -> Unit) {
+    Column (
+        Modifier
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        OutlinedButton(
+            onClick = { onClick() },
+            shape = RoundedCornerShape(50),
+            border = BorderStroke(1.dp,  MaterialTheme.colorScheme.error),
+            modifier = Modifier
+                .fillMaxWidth(0.96f),
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            )
+        ) {
+            Text(text = submitButtonText,
+                fontSize = fontSize,
+                fontWeight = FontWeight.Normal,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+    }
+}
+
+@Composable
 fun SubmitButton(submitButtonText: String, fontSize: TextUnit, onClick: () -> Unit) {
     Column (
         Modifier
@@ -584,16 +611,16 @@ fun SubmitButton(submitButtonText: String, fontSize: TextUnit, onClick: () -> Un
             shape = RoundedCornerShape(50),
             border = BorderStroke(1.dp, Color.White),
             modifier = Modifier
-                .fillMaxWidth(0.96f),
+                .fillMaxWidth(0.96f)
         ) {
             Text(submitButtonText,
                 fontSize = fontSize,
                 fontWeight = FontWeight.Normal
             )
         }
-
     }
 }
+
 @Composable
 fun SubmitButton(submitButtonText: MutableState<String>, fontSize: TextUnit, onClick: () -> Unit) {
     Column (

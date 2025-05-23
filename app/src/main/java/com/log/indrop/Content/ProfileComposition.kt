@@ -33,17 +33,30 @@ import coil.compose.AsyncImage
 import com.log.data.Content
 import com.log.data.PostData
 import com.log.data.UserData
+import com.log.indrop.Auth.ExitButton
 import com.log.indrop.Auth.SubmitButton
 import com.log.indrop.Auth.TOP_BAR_HEIGHT
 import com.log.indrop.Auth.TopBar
 import com.log.indrop.R
+import com.log.indrop.ViewModels.Search.SearchViewModel
+import com.log.indrop.data.storage.UserPreferences
+import com.log.indrop.domain.services.notification.NotificationIntegrationManager
 import com.log.indrop.ui.theme2.InkTheme
+import com.log.network.ViewModels.MainViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.koin.android.ext.android.inject
+import org.koin.compose.koinInject
+import org.koin.java.KoinJavaComponent.inject
 import java.time.OffsetDateTime
+
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ProfilePage(postsData: MutableStateFlow<List<PostData>>, user: UserData){
+fun ProfilePage(
+                postsData: MutableStateFlow<List<PostData>>,
+                user: UserData,
+                onClick: (task: String, metaData: String?) -> Unit) {
+
     InkTheme {
 
         Column {
@@ -56,10 +69,16 @@ fun ProfilePage(postsData: MutableStateFlow<List<PostData>>, user: UserData){
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.primaryContainer)
                     ) {
-                        SubmitButton(submitButtonText = "Создать новый пост", fontSize = 16.sp) {
+                        Column() {
+                            SubmitButton(submitButtonText = "Создать новый пост", fontSize = 16.sp) {
 
+                            }
+                            ExitButton(submitButtonText = "Выйти из аккаунта", fontSize = 16.sp) {
+                                onClick("logout", null)
+                            }
                         }
                     }
+
                 }
                 stickyHeader {
                     Row(
@@ -217,65 +236,65 @@ fun ProfileContent(postsData: MutableStateFlow<List<PostData>>) {
     }
 }
 
-@Preview
-@Composable
-fun ProfilePagePreview(){
-    val user = UserData(
-        0,
-        "n1kromant",
-        "Роман",
-        "Николаев",
-        "ICON"
-    )
-
-    val author = UserData(
-        1,
-        "Puffer",
-        "Sofia",
-        "Tyuleneva",
-        "uri"
-    )
-    val dateTime: OffsetDateTime = OffsetDateTime.now()
-
-    val content1 = Content(
-        text = "Поиск потерянного ключа\n" +
-                "Соня, маленькая девочка с густыми волосами и веселыми глазами, потеряла ключи от дома. Она обыскала каждый уголок своей комнаты, но ключи так и не нашла. Отчаявшись, она решила вспомнить, где они могли оказаться. Внезапно ей вспомнилось, что она играла во дворе у дерева. Она побежала туда и нашла ключи под кустом цветов.",
-        images = null
-    )
-
-    val content2 = Content(
-        text = "Приключение в лесу\n" +
-                "Соня отправилась на прогулку в лес вместе со своим верным другом, собакой по имени Рекс. Они встретили множество животных: белку, зайца и даже оленя. Вдруг они наткнулись на огромный дуб, ветви которого сливались с небесами. Они взобрались на верхушку и смогли увидеть великолепный закат.\n",
-        images = null
-    )
-
-    val content3 = Content(
-        text = "история о Чорном Диме:\n" +
-                "\n" +
-                "Черный Дима был самым загадочным обитателем небольшого городка, окруженного пышными лесами. Его настоящее имя никто не знал, и все окружающие просто называли его Черным Димой из-за его густых черных волос, которые всегда были небрежно растрепаны. Он жил в старом доме на окраине города, вдали от суеты и шума.\n" +
-                "\n" +
-                "У Черного Димы была особая способность — он мог говорить с животными. Каждый день он проводил в лесу, общаясь с разными созданиями, от маленьких белок и птиц до огромных медведей и волков. Они слушали его и помогали ему в трудные моменты.\n" +
-                "\n" +
-                "Однажды, когда в городе началась странная серия происшествий, Черный Дима решил взять дело в свои руки. С помощью своих верных друзей-зверей он раскрыл тайну и помог городу вернуть мир и спокойствие.\n" +
-                "\n" +
-                "Хотя Черный Дима и оставался загадочной фигурой для многих, все жители городка знали, что в случае опасности они могут полагаться на его мудрость и смелость. Он стал легендой, и его истории рассказывались детям по ночам перед сном.",
-        images = null
-    )
-
-    val posts = remember { MutableStateFlow(
-        listOf(
-            PostData(0, author, dateTime, content1),
-            PostData(1, author, dateTime, content2),
-            PostData(2, author, dateTime, content3)
-        )
-    ) }
-
-    InkTheme {
-        Column {
-            ProfilePage(posts, user)
-        }
-    }
-}
+//@Preview
+//@Composable
+//fun ProfilePagePreview(){
+//    val user = UserData(
+//        0,
+//        "n1kromant",
+//        "Роман",
+//        "Николаев",
+//        "ICON"
+//    )
+//
+//    val author = UserData(
+//        1,
+//        "Puffer",
+//        "Sofia",
+//        "Tyuleneva",
+//        "uri"
+//    )
+//    val dateTime: OffsetDateTime = OffsetDateTime.now()
+//
+//    val content1 = Content(
+//        text = "Поиск потерянного ключа\n" +
+//                "Соня, маленькая девочка с густыми волосами и веселыми глазами, потеряла ключи от дома. Она обыскала каждый уголок своей комнаты, но ключи так и не нашла. Отчаявшись, она решила вспомнить, где они могли оказаться. Внезапно ей вспомнилось, что она играла во дворе у дерева. Она побежала туда и нашла ключи под кустом цветов.",
+//        images = null
+//    )
+//
+//    val content2 = Content(
+//        text = "Приключение в лесу\n" +
+//                "Соня отправилась на прогулку в лес вместе со своим верным другом, собакой по имени Рекс. Они встретили множество животных: белку, зайца и даже оленя. Вдруг они наткнулись на огромный дуб, ветви которого сливались с небесами. Они взобрались на верхушку и смогли увидеть великолепный закат.\n",
+//        images = null
+//    )
+//
+//    val content3 = Content(
+//        text = "история о Чорном Диме:\n" +
+//                "\n" +
+//                "Черный Дима был самым загадочным обитателем небольшого городка, окруженного пышными лесами. Его настоящее имя никто не знал, и все окружающие просто называли его Черным Димой из-за его густых черных волос, которые всегда были небрежно растрепаны. Он жил в старом доме на окраине города, вдали от суеты и шума.\n" +
+//                "\n" +
+//                "У Черного Димы была особая способность — он мог говорить с животными. Каждый день он проводил в лесу, общаясь с разными созданиями, от маленьких белок и птиц до огромных медведей и волков. Они слушали его и помогали ему в трудные моменты.\n" +
+//                "\n" +
+//                "Однажды, когда в городе началась странная серия происшествий, Черный Дима решил взять дело в свои руки. С помощью своих верных друзей-зверей он раскрыл тайну и помог городу вернуть мир и спокойствие.\n" +
+//                "\n" +
+//                "Хотя Черный Дима и оставался загадочной фигурой для многих, все жители городка знали, что в случае опасности они могут полагаться на его мудрость и смелость. Он стал легендой, и его истории рассказывались детям по ночам перед сном.",
+//        images = null
+//    )
+//
+//    val posts = remember { MutableStateFlow(
+//        listOf(
+//            PostData(0, author, dateTime, content1),
+//            PostData(1, author, dateTime, content2),
+//            PostData(2, author, dateTime, content3)
+//        )
+//    ) }
+//
+//    InkTheme {
+//        Column {
+//            ProfilePage(posts, user)
+//        }
+//    }
+//}
 
 @Composable
 fun IntersectionExample() {

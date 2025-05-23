@@ -23,6 +23,7 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -59,6 +60,7 @@ import org.koin.compose.koinInject
 import com.example.graphql.MessageAddedSubscription
 import com.log.data.Content
 import com.log.data.UserData
+import com.log.indrop.data.storage.UserPreferences
 import com.log.indrop.domain.services.notification.AppVisibilityTracker
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.retryWhen
@@ -73,6 +75,7 @@ class Main: AppCompatActivity() {
     private val networkViewModel: NetworkViewModel by inject()
 
     private val networkManager: NetworkManager by inject()
+    private val userPreferences: UserPreferences by inject()
     private val notificationIntManager: NotificationIntegrationManager by inject()
 //    private val notificationSubManager: NotificationSubscriptionManager by inject()
 
@@ -160,6 +163,15 @@ class Main: AppCompatActivity() {
                             "cancelSub" -> {
                                 subscriptionJob?.cancel()
                                 subscriptionJob = null
+                            }
+                            "LOGOUT" -> {
+                                mainViewModel.clearAllData()
+                                userPreferences.clearUserData()
+                                notificationIntManager.deactivateNotifications()
+                                subscriptionJob?.cancel()
+                                subscriptionJob = null
+
+                                mainViewModel.makeFakePosts() // fixme ПАПРИКА
                             }
                         }
                     }
@@ -257,6 +269,7 @@ class Main: AppCompatActivity() {
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun Screen(viewModel: MainViewModel = koinInject(),
+           userPreferences: UserPreferences = koinInject<UserPreferences>(),
            networkManager: NetworkManager = koinInject(),
            messagesViewModel: MessagesViewModel = koinInject(),
            navigationHandler: NavigationHandlerImpl = koinInject(),
@@ -302,6 +315,7 @@ fun Screen(viewModel: MainViewModel = koinInject(),
                                 println("НАХУЙ ИДИ!!!!!!")
                                 viewModel.login()
                                 viewModel.setMyId("1")
+                                viewModel.makeFakeUserData()
                                 navController.navigate("messages")
                                 Toast.makeText(context, "Успешная Авторизация!", Toast.LENGTH_SHORT).show()
                             }
@@ -316,8 +330,7 @@ fun Screen(viewModel: MainViewModel = koinInject(),
                                         // После этого активируйте уведомления, передав MainViewModel и LifecycleOwner
                                         notificationManager.setupNotificationsWithViewModel(viewModel, lifecycleOwner)
                                         onClick("startSub", null)
-                                        // 4. При выходе из аккаунта добавьте:
-                                        //notificationManager.deactivateNotifications()
+
 
                                         navController.navigate("messages")
                                         Toast.makeText(context, "Успешная Авторизация!", Toast.LENGTH_SHORT).show()
@@ -367,10 +380,29 @@ fun Screen(viewModel: MainViewModel = koinInject(),
                         navController.navigate("chat")
                     }
                 }
-                composable("profile") { ProfilePage( //TODO: Добавить переход по userid
-                    viewModel.posts,
-                    viewModel.myUserData.collectAsState().value!!
-                ) }
+                composable("profile") {
+                    val user = viewModel.myUserData.collectAsState().value
+
+                    user?.let { safeUser ->
+                        ProfilePage(
+                            postsData = viewModel.posts,
+                            user = safeUser
+                        ) { task, metaData ->
+                            when (task) {
+                                "logout" -> {
+                                    navController.navigate("auth") {
+                                        popUpTo("auth") { inclusive = true }
+                                    }
+                                    onClick("LOGOUT", metaData)
+                                }
+                            }
+                        }
+                    } ?: LaunchedEffect(Unit) {
+                        navController.navigate("auth") {
+                            popUpTo("auth") { inclusive = true }
+                        }
+                    }
+                }
                 composable(
                     route = "chat",
                 ) {
